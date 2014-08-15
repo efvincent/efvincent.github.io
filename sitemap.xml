@@ -14,17 +14,101 @@
     <priority>0.8</priority>
   </url>
   
+  <url>
+    <loc>http://efvincent.github.io/blog/2011/06/24/di-bootstrap/</loc>
+    <lastmod>2011-06-24T02:07:31-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2011/05/27/di-mock/</loc>
+    <lastmod>2011-05-27T20:28:53-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2011/05/27/practical-di-101/</loc>
+    <lastmod>2011-05-27T13:08:27-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness/</loc>
+    <lastmod>2011-01-12T18:27:26-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2011/01/12/open-source-nuget-and-more/</loc>
+    <lastmod>2011-01-12T08:53:31-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/08/22/in-car-videocarolina-motorsports-park/</loc>
+    <lastmod>2010-08-22T19:57:06-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/05/03/combinators-in-c/</loc>
+    <lastmod>2010-05-03T01:15:43-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/</loc>
+    <lastmod>2010-04-27T14:29:49-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/02/02/roll-your-own-language-constructs/</loc>
+    <lastmod>2010-02-02T23:24:18-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/02/02/c-nuts-and-bolts-lambdas02/</loc>
+    <lastmod>2010-02-02T13:51:56-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas/</loc>
+    <lastmod>2010-02-01T14:19:41-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2010/01/31/applied-functional-01/</loc>
+    <lastmod>2010-01-31T22:12:13-05:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2009/08/24/nuts-bolts-delegates-functions-1/</loc>
+    <lastmod>2009-08-24T23:32:21-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight/</loc>
+    <lastmod>2009-08-18T01:33:22-04:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
   
   <url>
     <loc>http://efvincent.github.io/blog/archives/</loc>
-    <lastmod>2014-08-15T13:29:09-04:00</lastmod>
+    <lastmod>2014-08-15T17:06:25-04:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://efvincent.github.io/</loc>
-    <lastmod>2014-08-15T13:29:09-04:00</lastmod>
+    <lastmod>2014-08-15T17:06:25-04:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>

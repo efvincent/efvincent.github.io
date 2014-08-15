@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Test | Curried Functions]]></title>
+  <link href="http://efvincent.github.io/blog/categories/test/atom.xml" rel="self"/>
+  <link href="http://efvincent.github.io/"/>
+  <updated>2014-08-15T17:06:25-04:00</updated>
+  <id>http://efvincent.github.io/</id>
+  <author>
+    <name><![CDATA[Eric F. Vincent]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[A Taste of Dependency Injection, Testing, and Mocking]]></title>
+    <link href="http://efvincent.github.io/blog/2011/05/27/di-mock/"/>
+    <updated>2011-05-27T20:28:53-04:00</updated>
+    <id>http://efvincent.github.io/blog/2011/05/27/di-mock</id>
+    <content type="html"><![CDATA[<p><a href="http://blog.efvincent.com/practical-di-101">My last post</a> provided a brief introduction into dependency injection. To review, the example included a data provider for Employee objects, which included a feature to return the object corresponding to the currently logged in user. In the end the following interfaces were defined:</p>
+
+<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<Employee> as a data store.</p>
+
+<p><strong>IIdentityService</strong> – describes a service that supplies the <em>current</em> identity. What current is depends on the implementation of course. A concrete WindowsIdentService defines current as the currently logged in Windows user. The TestIdentService implementation always returned the same username, which is useful for testing as we will see.</p>
+
+<p><strong>ILogService</strong> – describes a simple logging service. The ConsoleLogService implementation prints logs to the console.</p>
+
+<!-- more -->
+
+
+<h3>Dependency Injection &amp;Testing</h3>
+
+<p>For this post I’ve added a standard MSTest project and a couple of tests for the data provider. The use of dependency injection patterns in the design of this simple example allows us to easily isolate the code under test.</p>
+
+<pre><code class="C#">static IContainer afContainer;
+
+[ClassInitialize]
+public static void TestInit(TestContext ctx) {
+    var idSvc = A.Fake&lt;IIdentService&gt;();
+    A.CallTo(() =&gt; idSvc.GetCurrentUserName())
+        .Returns("FAKE-ID");
+
+    var bldr = new ContainerBuilder();
+    bldr.RegisterInstance(idSvc);
+    bldr.RegisterInstance(A.Fake&lt;ILogService&gt;());
+    bldr.RegisterType&lt;DevDataProvider&gt;().As&lt;IDataProvider&gt;();
+    afContainer = bldr.Build();
+}
+</code></pre>
+
+<p>The test class has a static DI container instance, initialized in the class initializer. I’m using <a href="http://code.google.com/p/fakeiteasy/">FakeItEasy</a> to create a fake IIdentService at line five. Like six tells the FakeItEasy framework what to return when the GetCurrentUserName() method is called on the fake ident service. Having a fixed response makes testing the data provider a piece of cake.</p>
+
+<p>I then register the fake ident service as well as a fake log service. For the log service, we don’t need to specify any behavior for the methods. The FakeItEasy framework will effectively sink any calls to the methods of the fake log service, which is fine for this test.</p>
+
+<p>Lastly the data provider we want to test is registered with the DI container builder, and then container is built. The tests go on to use the DI container to resolve an instance of the data provider. The DI container will configure the data provider’s dependencies for a log service and an identity service with the fakes we built.</p>
+
+<pre><code class="C#">[TestMethod()]
+public void GetCurrentEmployeeTest() {
+    var e = new Employee { WindowsUsername = "FAKE-ID" };
+    var dal = afContainer.Resolve&lt;IDataProvider&gt;();
+    dal.AddEmployee(e);
+    var result = dal.GetCurrentEmployee();
+    Assert.AreEqual(e.WindowsUsername, result.WindowsUsername);
+}
+</code></pre>
+
+<p>This is just a small example of using a DI container in combination with a mock / fake framework for testing. The AutoFac DI container can handle much more complex scenarios than what we’ve thrown at it here. The same is true for the FakeItEasy component. Both of these components are well used, well maintained open source projects. You can find lots of documentation and examples for both. Or you can use any number of other DI containers and mocking frameworks to achieve equivalent results.</p>
+
+<p>The source code for the example is available <a href="https://bitbucket.org/efvincent/blog-post-dependency-injection-101">here</a>, and the blog entry the precedes this one is available <a href="http://blog.efvincent.com/practical-di-101/">here</a>.</p>
+]]></content>
+  </entry>
+  
+</feed>

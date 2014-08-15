@@ -1,0 +1,711 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Parsing Json Using F# - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="I was in one of those curious moods the other day, and decided to check out the API for the service behind my RSS reader, FeedDemon. I like this &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Parsing Json Using F#</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2010-04-27T14:29:49-04:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2010</span></span> <span class='time'>2:29 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I was in one of those curious moods the other day, and decided to check out the API for the service behind my RSS reader, <a href="http://www.newsgator.com/Individuals/FeedDemon/Default.aspx">FeedDemon</a>. I like this reader because it keeps my subscriptions and read / unread data synchronized across machines and my iPhone via an app called <a href="http://netnewswireapp.com/iphone/">NetNewsWire</a>.</p>
+
+<!-- more -->
+
+
+<p>Well it ends up that Google has gobbled up the service and it’s now Google Reader. Fair enough. It means you can also read your RSS feeds on the web at the Google reader site. Whatevs. It also turns out that Google has not publicized the API for that service yet. Yuck. But there are a couple of people out there (like <a href="http://code.google.com/p/pyrfeed/wiki/GoogleReaderAPI">here</a> and <a href="http://blog.martindoms.com/2009/08/15/using-the-google-reader-api-part-1/">here</a>) who have picked it apart using fiddler or some such thing.</p>
+
+<p>Well to put this meandering story to an end, I was playing with the API and it seems that some of the methods only return JSON. Others return XML, and others still are switchable. Messy. No wonder it’s not public yet. So that brings me to the point of this post… Parsing Json using F#.</p>
+
+<h3>Why F#?</h3>
+
+<p>I’ve avoided posting about F# to date, even though I love “playing” with it; I feel that posts about C# are more relevant. People are using F#, but I’ve never had the chance to use it on the job, and I don’t know anyone personally who has either. But since it’s <em>mainstream</em> now, what the heck. Plus parsing is one of those tasks that’s right up F#’s alley. If you haven’t worked with a functional language since college (or ever), give it a whirl. It’s refreshingly different from pure, straight, intensely object oriented thinking.</p>
+
+<h3>Json, Briefly</h3>
+
+<p>Most everyone knows what Json is by now. It’s just a tad more horrifying in real life as the supernatural killer from the Friday the 13th movies with whom it homophonetically shares its name. It’s a text format for representing data that can be evaluated in that wonderfully fast and lose language of the web, JavaScript, resulting in actual JavaScript objects. Read about it from the <a href="http://json.org">experts here</a>. Here’s an example of some awesome <a href="http://json.org">Json</a>:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;glossary&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;example glossary&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nt">&quot;GlossDiv&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;S&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="nt">&quot;GlossList&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>                <span class="nt">&quot;GlossEntry&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="nt">&quot;ID&quot;</span><span class="p">:</span> <span class="s2">&quot;SGML&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="nt">&quot;SortAs&quot;</span><span class="p">:</span> <span class="s2">&quot;SGML&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="nt">&quot;GlossTerm&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard Generalized Markup Language&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="nt">&quot;Acronym&quot;</span><span class="p">:</span> <span class="s2">&quot;SGML&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="nt">&quot;Abbrev&quot;</span><span class="p">:</span> <span class="s2">&quot;ISO 8879:1986&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="nt">&quot;GlossDef&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>                        <span class="nt">&quot;para&quot;</span><span class="p">:</span> <span class="s2">&quot;A meta-markup language, used to create markup languages such as DocBook.&quot;</span><span class="p">,</span>
+</span><span class='line'>                        <span class="nt">&quot;GlossSeeAlso&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;GML&quot;</span><span class="p">,</span> <span class="s2">&quot;XML&quot;</span><span class="p">]</span>
+</span><span class='line'>                    <span class="p">},</span>
+</span><span class='line'>                    <span class="nt">&quot;GlossSee&quot;</span><span class="p">:</span> <span class="s2">&quot;markup&quot;</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<h3>The Tokenizer</h3>
+
+<p>I’m no parsing / compiler / language expert, but I do know that tokenizing is the first step. This is when we run through the string and create tokens; identifying the open and close braces, the name value pairs, etc.</p>
+
+<p>First thing we want to look at is the Token type, which is a discriminated union. This type defines the <em>logical</em> things that are in the Json string. For example, an open quote, some characters, and a close quote is a string.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='Haskell'><span class='line'><span class="kr">type</span> <span class="kt">Token</span> <span class="ow">=</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">OpenBracket</span> <span class="o">|</span> <span class="kt">CloseBracket</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">OpenArray</span> <span class="o">|</span> <span class="kt">CloseArray</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Colon</span> <span class="o">|</span> <span class="kt">Comma</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">String</span> <span class="kr">of</span> <span class="n">string</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Number</span> <span class="kr">of</span> <span class="n">string</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>For this simple parser, the tokens are as above, open and close bracket and square bracket (aka array), colon, comma, numbers, and strings. This is a good reason to start with Json, it’s painfully simple. The tokenize function below turns the string into a list of tokens.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='Haskell'><span class='line'><span class="kr">let</span> <span class="n">tokenize</span> <span class="n">source</span> <span class="ow">=</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kr">let</span> <span class="n">rec</span> <span class="n">parseString</span> <span class="n">acc</span> <span class="ow">=</span> <span class="n">function</span>
+</span><span class='line'>    <span class="o">|</span> <span class="n">&#39;</span><span class="o">\\</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">&#39;</span><span class="s">&quot;&#39; :: t -&gt; // escaped quote</span>
+</span><span class='line'><span class="s">                          parseString (acc + &quot;</span><span class="nf">\</span><span class="s">&quot;&quot;</span><span class="p">)</span> <span class="n">t</span>
+</span><span class='line'>    <span class="o">|</span> <span class="n">&#39;</span><span class="s">&quot;&#39; :: t -&gt; // closing quote terminates</span>
+</span><span class='line'><span class="s">                  acc, t</span>
+</span><span class='line'><span class="s">    | c :: t -&gt; // otherwise accumulate</span>
+</span><span class='line'><span class="s">                parseString (acc + (c.ToString())) t</span>
+</span><span class='line'><span class="s">    | _ -&gt; failwith &quot;</span><span class="kt">Malformed</span> <span class="n">string</span><span class="o">.</span><span class="s">&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">  let rec token acc = function</span>
+</span><span class='line'><span class="s">    | (&#39;)&#39; :: _) as t -&gt; acc, t // closing paren terminates</span>
+</span><span class='line'><span class="s">    | (&#39;:&#39; :: _) as t -&gt; acc, t // colon terminates</span>
+</span><span class='line'><span class="s">    | (&#39;,&#39; :: _) as t -&gt; acc, t // comma terminates</span>
+</span><span class='line'><span class="s">    | w :: t when Char.IsWhiteSpace(w) -&gt; acc, t // whitespace terminates</span>
+</span><span class='line'><span class="s">    | [] -&gt; acc, [] // end of list terminates</span>
+</span><span class='line'><span class="s">    | c :: t -&gt; token (acc + (c.ToString())) t // otherwise accumulate chars</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">  let rec tokenize&#39; acc = function</span>
+</span><span class='line'><span class="s">    | w :: t when Char.IsWhiteSpace(w) -&gt; tokenize&#39; acc t   // skip whitespace</span>
+</span><span class='line'><span class="s">    | &#39;{&#39; :: t -&gt; tokenize&#39; (OpenBracket :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;}&#39; :: t -&gt; tokenize&#39; (CloseBracket :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;[&#39; :: t -&gt; tokenize&#39; (OpenArray :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;]&#39; :: t -&gt; tokenize&#39; (CloseArray :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;:&#39; :: t -&gt; tokenize&#39; (Colon :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;,&#39; :: t -&gt; tokenize&#39; (Comma :: acc) t</span>
+</span><span class='line'><span class="s">    | &#39;&quot;</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span> <span class="o">//</span> <span class="n">start</span> <span class="kr">of</span> <span class="n">string</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">s</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseString</span> <span class="s">&quot;&quot;</span> <span class="n">t</span>
+</span><span class='line'>      <span class="n">tokenize&#39;</span> <span class="p">(</span><span class="kt">Token</span><span class="o">.</span><span class="kt">String</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">::</span> <span class="n">acc</span><span class="p">)</span> <span class="n">t&#39;</span>
+</span><span class='line'>    <span class="o">|</span> <span class="n">&#39;</span><span class="o">-</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">d</span> <span class="ow">::</span> <span class="n">t</span> <span class="n">when</span> <span class="kt">Char</span><span class="o">.</span><span class="kt">IsDigit</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="o">//</span> <span class="n">start</span> <span class="kr">of</span> <span class="n">negative</span> <span class="n">number</span>
+</span><span class='line'>        <span class="kr">let</span> <span class="n">n</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">token</span> <span class="p">(</span><span class="s">&quot;-&quot;</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="kt">ToString</span><span class="nb">()</span><span class="p">)</span> <span class="n">t</span>
+</span><span class='line'>        <span class="n">tokenize&#39;</span> <span class="p">(</span><span class="kt">Token</span><span class="o">.</span><span class="kt">Number</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">::</span> <span class="n">acc</span><span class="p">)</span> <span class="n">t&#39;</span>
+</span><span class='line'>    <span class="o">|</span> <span class="n">&#39;</span><span class="o">+</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">d</span> <span class="ow">::</span> <span class="n">t</span> <span class="o">|</span> <span class="n">d</span> <span class="ow">::</span> <span class="n">t</span> <span class="n">when</span> <span class="kt">Char</span><span class="o">.</span><span class="kt">IsDigit</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="o">//</span> <span class="n">start</span> <span class="kr">of</span> <span class="n">positive</span> <span class="n">number</span>
+</span><span class='line'>        <span class="kr">let</span> <span class="n">n</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">token</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="kt">ToString</span><span class="nb">()</span><span class="p">)</span> <span class="n">t</span>
+</span><span class='line'>        <span class="n">tokenize&#39;</span> <span class="p">(</span><span class="kt">Token</span><span class="o">.</span><span class="kt">Number</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">::</span> <span class="n">acc</span><span class="p">)</span> <span class="n">t&#39;</span>
+</span><span class='line'>    <span class="o">|</span> <span class="kt">[]</span> <span class="ow">-&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">rev</span> <span class="n">acc</span> <span class="o">//</span> <span class="n">end</span> <span class="kr">of</span> <span class="n">list</span> <span class="n">terminates</span>
+</span><span class='line'>    <span class="o">|</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">failwith</span> <span class="s">&quot;Tokinzation error&quot;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">tokenize&#39;</span> <span class="kt">[]</span> <span class="n">source</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>We don’t have time for the full treatment of F#. If there’s any interest, I’ll post up some tutorials or at least links to some of the very many existing good tutorials out there already. For now, assume we have an understanding of the syntax, and the logic of tokenizing and parsing is what we’re after here.</p>
+
+<p>One of the first things we see is that <em>tokenize</em> defines a few functions within the function. Great feature of F#, allowing definitions of inner functions; it allows the coder to partition logic without having function explosion.</p>
+
+<p>The driving inner function is <em>tokenize’</em>, whose signature is (Token list –> char list –> Token list). This means it takes a Token list and a char list, and returns a Token list. The first token list (acc) is an accumulator. This list is built up as the procedure calls itself recursively. This is a common pattern in functional languages, to “thread” an accumulator through recursive calls. The second parameter is a char list, or a list of characters from the source string.</p>
+
+<p>We don’t see the char list explicitly because of the use of the <em>function</em> keyword at like 20, this keyword means that the last parameter (the char list) is implicitly used in a match statement, the cases of which follow after the function keyword. The syntax would be equivalent to:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='Haskell'><span class='line'><span class="kr">let</span> <span class="n">rec</span> <span class="n">tokenize&#39;</span> <span class="n">acc</span> <span class="n">sourceChars</span> <span class="ow">=</span>
+</span><span class='line'>  <span class="n">match</span> <span class="n">sourceChars</span> <span class="n">with</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">w</span> <span class="ow">::</span> <span class="n">t</span> <span class="n">when</span> <span class="kt">Char</span><span class="o">.</span><span class="kt">IsWhiteSpace</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">tokenize&#39;</span> <span class="n">acc</span> <span class="n">t</span>   <span class="o">//</span> <span class="n">skip</span> <span class="n">whitespace</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">&#39;</span><span class="p">{</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span> <span class="n">tokenize&#39;</span> <span class="p">(</span><span class="kt">OpenBracket</span> <span class="ow">::</span> <span class="n">acc</span><span class="p">)</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">&#39;</span><span class="p">}</span><span class="n">&#39;</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span> <span class="n">tokenize&#39;</span> <span class="p">(</span><span class="kt">CloseBracket</span> <span class="ow">::</span> <span class="n">acc</span><span class="p">)</span> <span class="n">t</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The idea that the sourceChars variable being passed immediately to the match..with construct is so common in F# that the <em>function</em> keyword is used as a contraction, allowing the elimination of what is an unnecessary variable. In many cases, this construct allows for a one line function definition.</p>
+
+<p>Most of the cases in the block matches a character which in turn maps to a token, which is appended to the accumulator (acc : Token list), and passed to a recursive call of tokenize’. This way the tokens are built up (in reverse order) as the string is traversed. This is seen in lines 22-27. Line 21 skips whitespace by calling tokenize’ without adding a token to the accumulator first.</p>
+
+<p>Things are a bit more interesting at lines 28, 31, and 34. Line 28 detects the beginning of a string, and starts a new recursive thread with the <em>parseString</em> function, the signature of which is (string –> char list –> string * char list). So the accumulator is a string, the “work” is being done on a char list, to which is passed our source char list, and the return is a tuple of string * char list, which is our parsed string and the rest of the source char list. One (of I’m sure <strong>many</strong>) optimizations that could be made is to use a mutable StringBuilder as the accumulator in parseString.</p>
+
+<p>The <em>token</em> function on line 12 does a similar job for non-string literals (numbers in this case, there are no bools in Json).</p>
+
+<p>Lastly, line 37 handles the case where we run out of source characters. The Token list we’ve been accumulating is backwards; we’ve been “appending” to the front of the list all this time. This is a common pattern. At the end, we return the reverse of the list. When the Json at the top is put through the tokenizer, we get this:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='Haskell'><span class='line'><span class="o">&gt;</span> <span class="kr">let</span> <span class="n">tk</span> <span class="ow">=</span> <span class="n">tokenize</span> <span class="n">source</span><span class="p">;;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">val</span> <span class="n">tk</span> <span class="kt">:</span> <span class="kt">Token</span> <span class="n">list</span> <span class="ow">=</span>
+</span><span class='line'>  <span class="p">[</span><span class="kt">OpenBracket</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;glossary&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">OpenBracket</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;title&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;example glossary&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossDiv&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">OpenBracket</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;title&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;S&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossList&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">OpenBracket</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossEntry&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">OpenBracket</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;ID&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;SGML&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;SortAs&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;SGML&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;GlossTerm&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;Standard Generalized Markup Language&quot;</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;Acronym&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;SGML&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;Abbrev&quot;</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">Colon</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;ISO 8879:1986&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossDef&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">OpenBracket</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;para&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span>
+</span><span class='line'>     <span class="s">&quot;A meta-markup language, used to create markup languages such as DocBook.&quot;</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossSeeAlso&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span> <span class="kt">OpenArray</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GML&quot;</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;XML&quot;</span><span class="p">;</span> <span class="kt">CloseArray</span><span class="p">;</span> <span class="kt">CloseBracket</span><span class="p">;</span> <span class="kt">Comma</span><span class="p">;</span> <span class="kt">String</span> <span class="s">&quot;GlossSee&quot;</span><span class="p">;</span> <span class="kt">Colon</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">String</span> <span class="s">&quot;markup&quot;</span><span class="p">;</span> <span class="kt">CloseBracket</span><span class="p">;</span> <span class="kt">CloseBracket</span><span class="p">;</span> <span class="kt">CloseBracket</span><span class="p">;</span> <span class="kt">CloseBracket</span><span class="p">;</span>
+</span><span class='line'>   <span class="kt">CloseBracket</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>This list of tokens is an intermediate step. From here, we could go in several directions. For my purposes, I wanted to see it as XML. To get there, I created a parser that takes the token list and returns an XElement.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='Haskell'><span class='line'><span class="kr">let</span> <span class="n">parseToXml</span> <span class="n">source</span> <span class="ow">=</span>
+</span><span class='line'><span class="kr">let</span> <span class="n">map</span> <span class="ow">=</span> <span class="n">function</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Token</span><span class="o">.</span><span class="kt">Number</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">n</span><span class="o">.</span><span class="kt">ToString</span><span class="nb">()</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Token</span><span class="o">.</span><span class="kt">String</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">x</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">v</span> <span class="ow">-&gt;</span> <span class="n">failwith</span> <span class="s">&quot;Syntax Error, unrecognized token in map()&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">let</span> <span class="n">rec</span> <span class="n">parseValue</span> <span class="p">(</span><span class="n">acc</span><span class="kt">:XElement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">function</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">OpenBracket</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">newElement</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseElement</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>    <span class="n">newElement</span><span class="p">,</span> <span class="n">t&#39;</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">OpenArray</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">name</span> <span class="ow">=</span> <span class="n">acc</span><span class="o">.</span><span class="kt">Name</span><span class="o">.</span><span class="kt">LocalName</span>
+</span><span class='line'>    <span class="kr">if</span> <span class="n">name</span><span class="o">.</span><span class="kt">EndsWith</span><span class="p">(</span><span class="s">&quot;ies&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">name</span><span class="o">.</span><span class="kt">Length</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="kr">then</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">childName</span> <span class="ow">=</span> <span class="n">name</span><span class="o">.</span><span class="kt">Substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="kt">Length</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;y&quot;</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseArray</span> <span class="n">childName</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>      <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span>
+</span><span class='line'>    <span class="n">elif</span> <span class="n">name</span><span class="o">.</span><span class="kt">EndsWith</span><span class="p">(</span><span class="s">&quot;s&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">name</span><span class="o">.</span><span class="kt">Length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="kr">then</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">childName</span> <span class="ow">=</span> <span class="n">name</span><span class="o">.</span><span class="kt">Substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="kt">Length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseArray</span> <span class="n">childName</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>      <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span>
+</span><span class='line'>    <span class="kr">else</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">childName</span> <span class="ow">=</span> <span class="n">acc</span><span class="o">.</span><span class="kt">Name</span><span class="o">.</span><span class="kt">LocalName</span>
+</span><span class='line'>      <span class="n">acc</span><span class="o">.</span><span class="kt">Name</span> <span class="ow">&lt;-</span> <span class="kt">XName</span><span class="o">.</span><span class="kt">Get</span><span class="p">(</span><span class="n">childName</span> <span class="o">+</span> <span class="s">&quot;s&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="kr">let</span> <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseArray</span> <span class="n">childName</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>      <span class="n">newListElement</span><span class="p">,</span> <span class="n">t&#39;</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">h</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="n">acc</span><span class="o">.</span><span class="kt">Value</span> <span class="ow">&lt;-</span> <span class="n">map</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">acc</span><span class="p">,</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">failwith</span> <span class="s">&quot;bad value&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">and</span> <span class="n">parseArray</span> <span class="n">name</span> <span class="n">acc</span> <span class="ow">=</span> <span class="n">function</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Comma</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span> <span class="n">parseArray</span> <span class="n">name</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">CloseArray</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>  <span class="n">acc</span><span class="p">,</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">newElement</span> <span class="ow">=</span> <span class="kt">XElement</span><span class="p">(</span><span class="kt">XName</span><span class="o">.</span><span class="kt">Get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">acc&#39;</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseValue</span> <span class="n">newElement</span> <span class="n">t</span>
+</span><span class='line'>    <span class="n">acc</span><span class="o">.</span><span class="kt">Add</span><span class="p">(</span><span class="n">acc&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">parseArray</span> <span class="n">name</span> <span class="n">acc</span> <span class="n">t&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">and</span> <span class="n">parseElement</span> <span class="p">(</span><span class="n">acc</span> <span class="kt">:</span> <span class="kt">XElement</span><span class="p">)</span> <span class="ow">=</span> <span class="n">function</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Comma</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="n">parseElement</span> <span class="n">acc</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">Token</span><span class="o">.</span><span class="kt">String</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">::</span> <span class="kt">Colon</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">newElement</span> <span class="ow">=</span> <span class="kt">XElement</span><span class="p">(</span><span class="kt">XName</span><span class="o">.</span><span class="kt">Get</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">v</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseValue</span> <span class="n">newElement</span> <span class="n">t</span>
+</span><span class='line'>    <span class="n">acc</span><span class="o">.</span><span class="kt">Add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">parseElement</span> <span class="n">acc</span> <span class="n">t&#39;</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">CloseBracket</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="n">acc</span><span class="p">,</span> <span class="n">t</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">failwith</span> <span class="s">&quot;Malformed JSON object&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">let</span> <span class="n">root</span> <span class="ow">=</span> <span class="kt">XElement</span><span class="p">(</span><span class="kt">XName</span><span class="o">.</span><span class="kt">Get</span><span class="p">(</span><span class="s">&quot;root&quot;</span><span class="p">))</span>
+</span><span class='line'><span class="kr">let</span> <span class="n">tokens</span> <span class="ow">=</span> <span class="n">tokenize</span> <span class="n">source</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">match</span> <span class="n">tokens</span> <span class="n">with</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kt">OpenBracket</span> <span class="ow">::</span> <span class="n">t</span> <span class="ow">-&gt;</span>
+</span><span class='line'>    <span class="kr">let</span> <span class="n">result</span><span class="p">,</span> <span class="n">t&#39;</span> <span class="ow">=</span> <span class="n">parseElement</span> <span class="n">root</span> <span class="n">t</span>
+</span><span class='line'>    <span class="n">result</span>
+</span><span class='line'>  <span class="o">|</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">failwith</span> <span class="s">&quot;Json did not begin with an object&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>There is still syntax checking happening in the parse step. The tokenizer would have found illegal tokens, but the parse function will find illegal Json structure. It works in a similar way to the tokenizer, except instead of a raw stream of characters, we’ve got a stream of tokens, which is examined one by one and passed to a set of recursive functions which accumulates the XML, in this case as an XElement.</p>
+
+<p>parseToXml defines inner functions <em>map</em>, <em>parseValue</em>, <em>parseArray</em>, and <em>parseElement.</em> It then gets to work by creating a root XElement, and getting the Token list. Json should start with an OpenBracket token. Anything else and we failwith an error (like C#’s throw). When we find that OpenBracket, the recursion begins with a call to parseElement. The root XElement serves as the accumulator, and the Token list is the “work” to be done.</p>
+
+<p>You should be able to see what’s happening if you’re somewhat comfortable with F#. The parseValue function does some extra work to wrap arrays in nodes where the singularity / plurality of the node makes it read a bit better (in English, most of the time). The other point of interest is that the accumulator is a mutable object in parseToXml, unlike the Token list was in tokenize. At lines 37 and 46, the newly created elements are added to the accumulator using the Add(XElement) method, which mutates the accumulator and keeps using it. This is a departure from “purer” functional techniques, but that’s what’s cool about F#, you can make those departures where it makes sense. In this case, leveraging the XElement class of the .NET framework was worth it. Consuming this class from C# is that much easier and more intuitive.</p>
+
+<p>After all is said and done, this is the XML that is emitted.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;root&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;glossary&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;title&gt;</span>example glossary<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;GlossDiv&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;title&gt;</span>S<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;GlossList&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;GlossEntry&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;ID&gt;</span>SGML<span class="nt">&lt;/ID&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;SortAs&gt;</span>SGML<span class="nt">&lt;/SortAs&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;GlossTerm&gt;</span>Standard Generalized Markup Language<span class="nt">&lt;/GlossTerm&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;Acronym&gt;</span>SGML<span class="nt">&lt;/Acronym&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;Abbrev&gt;</span>ISO 8879:1986<span class="nt">&lt;/Abbrev&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;GlossDef&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;para&gt;</span>A meta-markup language, used to create markup languages such as DocBook.<span class="nt">&lt;/para&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;GlossSeeAlsos&gt;</span>
+</span><span class='line'>              <span class="nt">&lt;GlossSeeAlso&gt;</span>GML<span class="nt">&lt;/GlossSeeAlso&gt;</span>
+</span><span class='line'>              <span class="nt">&lt;GlossSeeAlso&gt;</span>XML<span class="nt">&lt;/GlossSeeAlso&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;/GlossSeeAlsos&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;/GlossDef&gt;</span>
+</span><span class='line'>          <span class="nt">&lt;GlossSee&gt;</span>markup<span class="nt">&lt;/GlossSee&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/GlossEntry&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;/GlossList&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/GlossDiv&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/glossary&gt;</span>
+</span><span class='line'><span class="nt">&lt;/root&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>It isn’t the most sophisticated, performant, or I’m sure accurate Json parser out there. But it does the trick for my immediate need, is a good starting point for more sophistication later if needed, and was an excellent exercise in parsing and F#. It was fun to write, and hopefully it stimulates some curiosities. Let me know if you’ve got any questions or comments.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2010-04-27T14:29:49-04:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2010</span></span> <span class='time'>2:29 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/f-number/'>f#</a>, <a class='category' href='/blog/categories/functional/'>functional</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/02/02/roll-your-own-language-constructs/" title="Previous Post: Roll Your Own Language Constructs">&laquo; Roll Your Own Language Constructs</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2010/05/03/combinators-in-c/" title="Next Post: Combinators in C#">Combinators in C# &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/';
+        var disqus_url = 'http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

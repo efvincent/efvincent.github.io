@@ -1,0 +1,799 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Practical Dependency Injection 101 - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="In this post we take a look at dependency injection (DI). Target audience is competent .NET developers, C# specifically (but VB’ers who read C# can &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2011/05/27/practical-di-101">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Practical Dependency Injection 101</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-05-27T13:08:27-04:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>1:08 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In this post we take a look at dependency injection (DI). Target audience is competent .NET developers, C# specifically (but VB’ers who read C# can benefit just as much), who’ve heard of DI but haven’t gotten around to figuring out how it fits in their day to day.</p>
+
+<!-- more -->
+
+
+<h3>What is Dependency Injection</h3>
+
+<p>The first question that we need to address is: What is it that DI does for us? What problem is being solved? DI is about coupling; the degree to which program unit refers to other units. In .NET the units we’re typically worried about are classes, interfaces, components, and assemblies. Dependency injection facilitates reduction these interdependencies. Are DI patterns a silver bullet? Of course not. You can always write bad code regardless of patterns. That being said, if you’re already writing decent code and have good fundamentals, but are not using DI patterns, you’ve got the opportunity to take a leap forward.</p>
+
+<p>How does DI reduce help reduce coupling? The easiest way to describe it is by diving directly into an example.</p>
+
+<h3>Example Scenario</h3>
+
+<p>We’ll work on a hypothetical in-house app where the Windows AD authenticates employees, and their Windows username is used to index a database with Employee information. It’s pretty common to see stuff like this happening in-house with line of business applications.</p>
+
+<p>The example uses a provider pattern – all the data access will go through a data access provider, allowing us to build a simple provider that stores records in memory during this, our prototype phase. Theoretically we’d replace this as development continued with a provider that leverages persistent storage later.</p>
+
+<p>Here’s the base level example program with no consideration for dependency injection:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">class</span> <span class="nc">Program</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// ** Without using an DI Container approach **</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Create a new provider aka data access layer</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">dal</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DevDataProvider</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// New up an employee that&#39;s supposed to represent the currently logged in user</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">e</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Employee</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">WindowsUsername</span> <span class="p">=</span> <span class="s">&quot;thanos\\efvincent&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">EmployeeId</span> <span class="p">=</span> <span class="s">&quot;0001&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">FName</span> <span class="p">=</span> <span class="s">&quot;Eric&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">LName</span> <span class="p">=</span> <span class="s">&quot;Vincent&quot;</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Add it to the data access layer</span>
+</span><span class='line'>        <span class="n">dal</span><span class="p">.</span><span class="n">AddEmployee</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// See if the dal can find the current user</span>
+</span><span class='line'>        <span class="n">e</span> <span class="p">=</span> <span class="n">dal</span><span class="p">.</span><span class="n">GetCurrentEmployee</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span>
+</span><span class='line'>            <span class="s">&quot;Current logged in person is: {0}&quot;</span><span class="p">,</span> <span class="n">e</span> <span class="p">==</span> <span class="k">null</span> <span class="p">?</span> <span class="s">&quot;unknown&quot;</span> <span class="p">:</span> <span class="n">e</span><span class="p">.</span><span class="n">FName</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// End</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DevDataProvider</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">EmployeeStore</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Employee</span> <span class="nf">GetCurrentEmployee</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">emp</span> <span class="p">=</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">FirstOrDefault</span><span class="p">(</span>
+</span><span class='line'>            <span class="n">e</span> <span class="p">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">WindowsUsername</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">GetCurrentUserName</span><span class="p">(),</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">emp</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">AddEmployee</span><span class="p">(</span><span class="n">Employee</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IQueryable</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">Employees</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">AsQueryable</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">GetCurrentUserName</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">wu</span> <span class="p">=</span> <span class="n">WindowsIdentity</span><span class="p">.</span><span class="n">GetCurrent</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">wu</span> <span class="p">==</span> <span class="k">null</span> <span class="p">?</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span> <span class="p">:</span> <span class="n">wu</span><span class="p">.</span><span class="n">Name</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Employee</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">WindowsUsername</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">EmployeeId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">FName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">LName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>In Main() we new up the data access layer, create a new employee, and add it to our store using the data access layer. At line 21 we ask the data access layer to retrieve the employee record for the currently logged in user. Looks pretty typical, so how can IoC help? Let’s look at the coupling here – what classes are dependent on what other classes?</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/05/image.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/05/image_thumb.png" alt="image" /></a></p>
+
+<p>Our main program depends on the DevDataProvider class, and that depends on System.Security to find the Windows username of the currently logged in user. Asking the data access layer to determine the currently logged in user isn’t the best idea, but this is blog post code created to check out dependency injection, so deal with that for the moment.</p>
+
+<p>Why are these dependencies undesirable? First consider how flexible this software is. Or rather, inflexible. We created a “quick” DevDataProvider that stores stuff in a static list. As we continue to build a system, we’d have to refer to DevDataProvider from more and more classes, creating a brittle, tightly coupled system. Replacing DevDataProvider becomes more of a maintenance problem.</p>
+
+<p>Next think about testability. In real life there are unit tests (there should be anyway). One reason why people find excuses not to unit test is because their code is difficult to test. In this example, if we want to test DevDataProvider.GetCurrentEmployee() we have to consider that under the covers it’s calling the Windows API to get the current username. This makes that method harder to than it needs to be.</p>
+
+<h3>Step One – Leveraging Interfaces</h3>
+
+<p>In this version, we’ve factored out an interface called IDataProvider, and one called IIdentService. The IDataProvider should be pretty obvious – but IIdentService? The idea here is to decouple from the Windows API itself. A developer should understand <em>everywhere </em>that the application makes contact with <em>any</em> external modules, including the operating system, and then consider what the repercussions of that contact are. In this example, coupling to the Windows API to get then logged in username so directly is undesirable. We want to use a <em>service</em> that would supply us with credentials. That way if we’re testing, we can create a fake service that provides a predictable answer, and is therefore easier to test.</p>
+
+<p>Coding to an interface also allows us to radically change the behavior of the service without having to alter its dependencies. If we move to a ASP.NET environment for example, we won’t want to use the current Windows Identity, we may want to use user information from the http context.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Interface defining an identity service</span>
+</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IIdentService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">string</span> <span class="nf">GetCurrentUserName</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Implementation of an identity service that returns the current</span>
+</span><span class='line'><span class="c1">// logged in windows username</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">WindowsIdentService</span> <span class="p">:</span> <span class="n">IIdentService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetCurrentUserName</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">wu</span> <span class="p">=</span> <span class="n">WindowsIdentity</span><span class="p">.</span><span class="n">GetCurrent</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">wu</span> <span class="p">==</span> <span class="k">null</span> <span class="p">?</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span> <span class="p">:</span> <span class="n">wu</span><span class="p">.</span><span class="n">Name</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Interface defining a data provider service</span>
+</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IDataProvider</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Employee</span> <span class="nf">GetCurrentEmployee</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">void</span> <span class="nf">AddEmployee</span><span class="p">(</span><span class="n">Employee</span> <span class="n">e</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">IQueryable</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">Employees</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Our development data provider now implements the interface</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DevDataProvider</span> <span class="p">:</span> <span class="n">IDataProvider</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IIdentService</span> <span class="n">_identService</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">EmployeeStore</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">DevDataProvider</span><span class="p">(</span><span class="n">IIdentService</span> <span class="n">identService</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">identService</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;identService&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">_identService</span> <span class="p">=</span> <span class="n">identService</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Employee</span> <span class="nf">GetCurrentEmployee</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">emp</span> <span class="p">=</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">FirstOrDefault</span><span class="p">(</span>
+</span><span class='line'>                        <span class="n">e</span> <span class="p">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">WindowsUsername</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span>
+</span><span class='line'>                            <span class="n">_identService</span><span class="p">.</span><span class="n">GetCurrentUserName</span><span class="p">(),</span>
+</span><span class='line'>                            <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">emp</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">AddEmployee</span><span class="p">(</span><span class="n">Employee</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IQueryable</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">Employees</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">AsQueryable</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>We’re part of the way to where we need to be. Altering DevDataProvider to depend on the IIdentService interface frees it from a hard dependency on a particular identity implementation. The downside is we’ve made creation of the DevDataProvider a bit more complex, as we need to supply the new instance with an IIdentityService instance.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Create a new ident service, required for the DAL</span>
+</span><span class='line'><span class="n">IIdentService</span> <span class="n">identSvc</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WindowsIdentService</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Create a new DAL</span>
+</span><span class='line'><span class="n">IDataProvider</span> <span class="n">dal</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DevDataProvider</span><span class="p">(</span><span class="n">identSvc</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The DevDataProvider now takes a constructor parameter of type IIdentService. This is where the <em>injection</em> in dependency injection comes from. DevDataProvider has a dependency, but instead of hard coding it into the definition of DevDataProvider, we inject it. There are different ways of injecting dependencies, but constructor injection is very popular and works well in many, or even most cases.</p>
+
+<p>The complexity of constructing instances increases when we add a simple logging service which logs information or errors messages.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Interface defining a logging service</span>
+</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">ILogService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">void</span> <span class="nf">LogInfo</span><span class="p">(</span><span class="kt">string</span> <span class="n">msg</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">void</span> <span class="nf">LogError</span><span class="p">(</span><span class="kt">string</span> <span class="n">msg</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Implementation of a console logging service</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ConsoleLogger</span> <span class="p">:</span> <span class="n">ILogService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">LogInfo</span><span class="p">(</span><span class="kt">string</span> <span class="n">msg</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span>
+</span><span class='line'>            <span class="s">&quot;{0} INFO: {1}&quot;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">,</span>
+</span><span class='line'>            <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">LogError</span><span class="p">(</span><span class="kt">string</span> <span class="n">msg</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span>
+</span><span class='line'>            <span class="s">&quot;{0} ERROR: {1}&quot;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">,</span>
+</span><span class='line'>            <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">args</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The ILogService is implemented by a simple console logger. Now both the WindowsIdentService and the DevDataProvider can leverage the logger. They’re both modified to have ILogService instance injected via their respective constructors.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Implementation of an identity service that returns the current</span>
+</span><span class='line'><span class="c1">// logged in windows username</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">WindowsIdentService</span> <span class="p">:</span> <span class="n">IIdentService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogService</span> <span class="n">_logSvc</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">WindowsIdentService</span><span class="p">(</span><span class="n">ILogService</span> <span class="n">logSvc</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logSvc</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;logSvc&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">_logSvc</span> <span class="p">=</span> <span class="n">logSvc</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetCurrentUserName</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">wu</span> <span class="p">=</span> <span class="n">WindowsIdentity</span><span class="p">.</span><span class="n">GetCurrent</span><span class="p">();</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">un</span> <span class="p">=</span> <span class="n">wu</span> <span class="p">==</span> <span class="k">null</span> <span class="p">?</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span> <span class="p">:</span> <span class="n">wu</span><span class="p">.</span><span class="n">Name</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">_logSvc</span><span class="p">.</span><span class="n">LogInfo</span><span class="p">(</span><span class="s">&quot;Identified current user as: {0}&quot;</span><span class="p">,</span> <span class="n">un</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">un</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Our development data provider now implements the interface</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DevDataProvider</span> <span class="p">:</span> <span class="n">IDataProvider</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IIdentService</span> <span class="n">_identService</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogService</span> <span class="n">_logSvc</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">EmployeeStore</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">DevDataProvider</span><span class="p">(</span><span class="n">IIdentService</span> <span class="n">identService</span><span class="p">,</span> <span class="n">ILogService</span> <span class="n">logSvc</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">identService</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;identService&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logSvc</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;logSvc&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">_identService</span> <span class="p">=</span> <span class="n">identService</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">_logSvc</span> <span class="p">=</span> <span class="n">logSvc</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Employee</span> <span class="nf">GetCurrentEmployee</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">un</span> <span class="p">=</span> <span class="n">_identService</span><span class="p">.</span><span class="n">GetCurrentUserName</span><span class="p">();</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">emp</span> <span class="p">=</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">FirstOrDefault</span><span class="p">(</span>
+</span><span class='line'>                        <span class="n">e</span> <span class="p">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">WindowsUsername</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">un</span><span class="p">,</span>
+</span><span class='line'>                            <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">emp</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="n">_logSvc</span><span class="p">.</span><span class="n">LogInfo</span><span class="p">(</span><span class="s">&quot;Current employee {0} not found&quot;</span><span class="p">,</span> <span class="n">un</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">emp</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">AddEmployee</span><span class="p">(</span><span class="n">Employee</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">_logSvc</span><span class="p">.</span><span class="n">LogInfo</span><span class="p">(</span><span class="s">&quot;Added employee with id {0}&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">EmployeeId</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IQueryable</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">Employees</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">EmployeeStore</span><span class="p">.</span><span class="n">AsQueryable</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Now the services are getting more robust and they&rsquo;re not tightly coupled to each other, they refer only to interfaces of the services they depend on. Main() however, where construction is going on, is getting messy.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// ** Without using an DI Container approach **</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Create a new logging service, required for uh.. everything</span>
+</span><span class='line'>    <span class="n">ILogService</span> <span class="n">consoleLog</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ConsoleLogger</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Create a new ident service, required for the DAL</span>
+</span><span class='line'>    <span class="n">IIdentService</span> <span class="n">identSvc</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WindowsIdentService</span><span class="p">(</span><span class="n">consoleLog</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Create a new DAL</span>
+</span><span class='line'>    <span class="n">IDataProvider</span> <span class="n">dal</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DevDataProvider</span><span class="p">(</span><span class="n">identSvc</span><span class="p">,</span> <span class="n">consoleLog</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Finally we’re at the point where we can see the benefit of an dependency injection container. One thing about DI containers is that they’re already written. Several mature, robust, open-source DI containers exist. We’ll use AutoFac, because that’s what I’ve been using lately. We include <a href="http://www.nuget.org/List/Packages/Autofac">AutoFac</a> using <a href="http://www.nuget.org">NuGet</a>.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Create a singleton dependency injection container</span>
+</span><span class='line'><span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">IContainer</span> <span class="n">Container</span> <span class="p">=</span> <span class="n">ConfigureContainer</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Configure the container</span>
+</span><span class='line'><span class="k">static</span> <span class="n">IContainer</span> <span class="nf">ConfigureContainer</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// This is how AutoFac works. Other DI containers have similar</span>
+</span><span class='line'>    <span class="c1">// mechanisms for configuring the container</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">bld</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerBuilder</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Register the types that implement the interfaces that are required</span>
+</span><span class='line'>    <span class="c1">// for injection. Note that we have robust control over lifetime, in</span>
+</span><span class='line'>    <span class="c1">// this case ILogService and IIdentService will be singletons, and</span>
+</span><span class='line'>    <span class="c1">// IDataProvider will provide a new instance each time it&#39;s requested</span>
+</span><span class='line'>    <span class="n">bld</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ConsoleLogger</span><span class="p">&gt;().</span><span class="n">As</span><span class="p">&lt;</span><span class="n">ILogService</span><span class="p">&gt;().</span><span class="n">SingleInstance</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">bld</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">WindowsIdentService</span><span class="p">&gt;().</span><span class="n">As</span><span class="p">&lt;</span><span class="n">IIdentService</span><span class="p">&gt;().</span><span class="n">SingleInstance</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">bld</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">DevDataProvider</span><span class="p">&gt;().</span><span class="n">As</span><span class="p">&lt;</span><span class="n">IDataProvider</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">bld</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// ** Using an IoC Container approach **</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">dal</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IDataProvider</span><span class="p">&gt;();</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>We’ve created a static instance of IContainer (an AutoFac DI container). When we start the app we configure the container, which fundamentally consists of mapping the interfaces to concrete types that will be injected. For example, line 14 specifies that when there’s a need for an instance of ILogService, we will create an instance of ConsoleLogger. It further says that the DI container should use a SingleInstance() of ConsoleLogger. This has the effect of making ConsoleLogger a singleton. In our example, both the WindowsIdentService and the DevDataProvider will be handed the same instance of ConsoleLogger.</p>
+
+<p>The magic happens when we call Container.Resolve<IDataProvider>(). The container determines what concrete class to create, and it looks for any dependencies in the constructor. It will see that to build a DevDataProvider, it needs an ILogService and an IWindowsIdentService, it will recursively resolve those as well.</p>
+
+<p>These are the basics of dependency injection. Even in this simple example, it should be obvious that the components and classes that we can create can be designed with very low coupling and cohesion using this technique. There are anti-patterns for using DI as well. You should endeavor to practice this technique, do research and learn the most effective uses; there’s plenty of material out there.</p>
+
+<p>I hope this example was helpful. Next post I’ll extend this sample by looking at testing, and mock objects, and how DI injection can make testing far easier.</p>
+
+<p>Source code samples can be found at this <a href="https://bitbucket.org/efvincent/blog-post-dependency-injection-101">bitbucket repository</a>.</p>
+
+<p><em>Update:</em> Follow up post - <a href="http://efvincent.github.io/2011/05/28/di-mock">Dependency Injection, Testing, and Mocking</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2011-05-27T13:08:27-04:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>1:08 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/autofac/'>autofac</a>, <a class='category' href='/blog/categories/basics/'>basics</a>, <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/dependency-injection/'>dependency injection</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2011/05/27/practical-di-101/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2011/05/27/practical-di-101/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/01/12/nuget-geeky-goodness/" title="Previous Post: NuGet – Galleries of Geeky Goodness.">&laquo; NuGet – Galleries of Geeky Goodness.</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/05/27/di-mock/" title="Next Post: A Taste of Dependency Injection, Testing, and Mocking">A Taste of Dependency Injection, Testing, and Mocking &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2011/05/27/practical-di-101/';
+        var disqus_url = 'http://efvincent.github.io/blog/2011/05/27/practical-di-101/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

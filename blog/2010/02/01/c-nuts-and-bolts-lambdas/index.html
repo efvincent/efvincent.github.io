@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>C# Nuts and Bolts: Lambdas - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="You don’t need to use Lambdas to make a living writing code in .NET. You can probably get away with not even knowing what Linq is. You can also still &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">C# Nuts and Bolts: Lambdas</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2010-02-01T14:19:41-05:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2010</span></span> <span class='time'>2:19 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>You don’t need to use Lambdas to make a living writing code in .NET. You can probably get away with not even knowing what Linq is. You can also still find work coding in .NET 2.0. But that’s painfully BORING. So to avoid the stinging monotony of working in a 5 year reverse time-shift, let’s take a look at lambdas.</p>
+
+<!-- more -->
+
+
+<p>The (arguably) simplest lambda.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="kt">string</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Hello World&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="n">Action</span> <span class="n">simpleLambda</span> <span class="p">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">“</span><span class="n">Get</span> <span class="n">ready</span> <span class="k">for</span> <span class="n">a</span> <span class="n">message</span><span class="p">!</span><span class="err">”</span><span class="p">);</span>
+</span><span class='line'><span class="n">simpleLambda</span><span class="p">();</span>
+</span><span class='line'><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">“</span><span class="n">That</span> <span class="n">was</span> <span class="n">the</span> <span class="n">message</span><span class="p">!</span><span class="err">”</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The the type “Action” is a delegate, which can be thought of as a function pointer. The variable “simpleLambda” is now a function. The same way that “message” is a string. In reality, there are delegates and pointers involved, but for the day to day, just think of “simpleLambda” as a function. It can be called just like you would any function, which is what we’ve done here.</p>
+
+<p>There are two different Types that are generally used for these functions. They are “Action” and “Func”. Action, which we just saw, is a function that doesn’t return anything. It’s a void function. When we want to define a function that returns something, we use the “Func” type. Remember back to your early days of Visual Basic, Pascal, etc., when there were different keywords that you’d use to specify if there was a return value or not? Same kinda thing here. Func returns, Action doesn’t. So here’s a Func example.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Define a func that returns something</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">minutesAndSeconds</span> <span class="p">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;{0:mm:ss.ffff}&quot;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Current Minutes and seconds are: &quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">minutesAndSeconds</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Here’s a function that returns a string. It’s type is Func<string>, which you can read as a function that returns a string. Let’s break down the syntax of the lambda itself. It centers around the lambda operator “=>”, which some people read as “goes to”. In both our examples, simpleLambda and minutesAndSeconds are functions that take no parameters. So on the left of the lambda operator are empty parenthesis. Means no parameters to the function. Easy. On the right is the body of the function.</p>
+
+<p>There are two ways of expressing the body of the function. If the body is a single statement, you can just put that statement. This is called an Expression Lambda. If you need more than one statement on the right of the Lambda operator, you end up with something like this:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="n">hasher</span> <span class="p">=</span>
+</span><span class='line'>    <span class="n">s</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">sha</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">Cryptography</span><span class="p">.</span><span class="n">SHA1CryptoServiceProvider</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToBase64String</span><span class="p">(</span><span class="n">sha</span><span class="p">.</span><span class="n">ComputeHash</span><span class="p">(</span><span class="n">ASCIIEncoding</span><span class="p">.</span><span class="n">UTF8</span><span class="p">.</span><span class="n">GetBytes</span><span class="p">(</span><span class="n">s</span><span class="p">)));</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;The base64 encoded SHA1 hash of \&quot;Hello World\&quot; is {0}&quot;</span><span class="p">,</span> <span class="n">hasher</span><span class="p">(</span><span class="s">&quot;Hello World&quot;</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>A couple of differences here… first there’s some added whitespace to make stuff more readable. Don’t let it throw you. Whitespace == good. Second, the type is now Func&lt;string, string>. The key to reading the Func type is that the last generic type specification is the return type. So it reads “a function that takes a string and returns a string”. Since this lambda takes a string as a parameter, to the left of the lambda operator goes the parameter. You can name this parameter anything you want, just like when you’re defining a regular function. This parameter is bound to the input to the function.</p>
+
+<p>The next thing that’s different is there are open and close curly brackets, just like a function definition, after the lambda operator. This is the body, it’s just like a function body. You declare local variables in here, and when you’re done, you return something. Or if this is an Action instead of a Func, you don’t need to return anything (remember, Action is like a void function). This is the same function except as a statically defined method on a class:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">Hasher</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">sha</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">Cryptography</span><span class="p">.</span><span class="n">SHA1CryptoServiceProvider</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToBase64String</span><span class="p">(</span><span class="n">sha</span><span class="p">.</span><span class="n">ComputeHash</span><span class="p">(</span><span class="n">ASCIIEncoding</span><span class="p">.</span><span class="n">UTF8</span><span class="p">.</span><span class="n">GetBytes</span><span class="p">(</span><span class="n">s</span><span class="p">)));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Thaaaaatts pretty much it. There’re plenty of implementation details under the covers, and there’s a whole world of design patterns and techniques to explore with regards to <em>using</em> lambdas. But as far as what they are, you’re looking at it. I’ll push it a little further in the next blog post. If you’ve got any questions or want to dive deeper into this or any other subject I write about, let me know in the comments. In the mean time, have fun!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2010-02-01T14:19:41-05:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2010</span></span> <span class='time'>2:19 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/delegate/'>delegate</a>, <a class='category' href='/blog/categories/functional/'>functional</a>, <a class='category' href='/blog/categories/lambda/'>lambda</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/01/31/applied-functional-01/" title="Previous Post: Applied Functional: Getting User Input">&laquo; Applied Functional: Getting User Input</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2010/02/02/c-nuts-and-bolts-lambdas02/" title="Next Post: Lambdas – Exposing Disposable Resources in your API">Lambdas – Exposing Disposable Resources in your API &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas/';
+        var disqus_url = 'http://efvincent.github.io/blog/2010/02/01/c-nuts-and-bolts-lambdas/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

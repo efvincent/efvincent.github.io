@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>NuGet – Galleries of Geeky Goodness. - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="In a previous post I described how Scott Hanselman’s presentation during PDC 2010 introduced me to several wonderful and interesting technologies &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">NuGet – Galleries of Geeky Goodness.</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-01-12T18:27:26-05:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>6:27 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In a <a href="http://blog.efvincent.com/open-source-nuget-and-more/">previous post</a> I described how Scott Hanselman’s <a href="http://www.hanselman.com/blog/PDC10BuildingABlogWithMicrosoftUnnamedPackageOfWebLove.aspx">presentation</a> during PDC 2010 introduced me to several wonderful and interesting technologies that are either just now out or about to be. The first one I’ll discuss is <a href="http://nuget.codeplex.com">NuGet</a>. There are many excellent introductions to NuGet by <a href="http://www.hanselman.com/blog/IntroducingNuPackPackageManagementForNETAnotherPieceOfTheWebStack.aspx">Hanselman</a> and others. I’ll see if I can make a meaningful contribution.</p>
+
+<p>NuGet is an add-on to VS2010. It allows us to access <em>packages</em> that have been published either locally or publicly on the web. The main NuGet gallery just went live today at <a href="http://nuget.org">http://nuget.org</a>. These packages make it easy to install, update, and remove libraries and tools in Visual Studio 2010.</p>
+
+<!-- more -->
+
+
+<h2>Installation</h2>
+
+<p>NuGet, like dozens of other useful add-ins, is available through the Visual Studio Extension Manager, reached under _Tools… Extension Manager…. _</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb.png" alt="image" /></a></p>
+
+<p>From the Extension Manager choose (1) the online gallery, and then (2) search for NuGet. A restart of Visual Studio is required.</p>
+
+<h2>The NuGet Package Manager Console</h2>
+
+<p>NuGet has two user interfaces. There’s a PowerShell powered console window. This is the UI I was first introduced to and have gravitated towards. The console gives you a more complete sense of control over the process. Open the console by selecting <em>View… Other Windows… Package Manager Console</em>.</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image1.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb1.png" alt="image" /></a></p>
+
+<p>The <em>Package Source</em> drop down defaults to the official NuGet package gallery. There are already hundreds of packages out in the gallery, and you can expect it to grow rapidly. You can list the packages in the official library with:</p>
+
+<p>List-Packages –remote</p>
+
+<p>There are a lot of them, and since the console is PowerShell we can take advantage of a PowerShell grid display:</p>
+
+<p>List-Packages –remote | out-GridView</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image2.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb2.png" alt="image" /></a></p>
+
+<h2>Installing and Removing Packages</h2>
+
+<p>Now comes the really cool part. The whole idea of NuGet is to be able to install / add external libraries to your project without having to find them on the web, download a zip or msi file, install it somewhere on your local machine, figure out what the instructions are for incorporating them into your project, and patching it in manually.</p>
+
+<p>Let’s take for example, the latest CTP5 version of Entity Framework, that allows for <em>Code First</em> use of the Entity Framework. EF4 will justify at least one future dedicated post, but we’ll use it here for a quick example. Normally, if you want to try out something like a new version of Entity Framework, there’s downloading, installing, shaving the chicken, bla bla bla that you’ve got to do. Not with NuGet. NuGet can effectively <em>“</em>xcopy deploy” it into our project.</p>
+
+<p>Create a new console application in Visual Studio. From the Package Manager Console, type <em>Install-Package EF</em> and press the tab key. An intellisense window will pop up showing packages that begin with EF.</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image3.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb3.png" alt="image" /></a></p>
+
+<p>At the time of this writing, there are five packages. The EFCTP4 ones are obsolete, from the last CTP. For this example, choose <em>EFCodeFirst</em> and press enter. The console displays license info, downloads the EFCodeFirst package, and incorporates it into your project. In the solution explorer, we can see a reference  (1) and a file (2) added to the project.</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image4.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb4.png" alt="image" /></a></p>
+
+<p>Checking the properties of the reference to EntityFramework, you can see that it’s not installed to the GAC, it’s local to the solution. NuGet creates a solution level folder called <em>packages</em>. In that folder, in addition to components used as references, is all the data that NuGet needs to install and uninstall packages. All local, without changing any configuration on the machine. More details of the inner workings of NuGet and its packages will come at a later date, plus there’s information out there you can dig up if you’re so inclined.</p>
+
+<h2>Using Entity Framework</h2>
+
+<p>Now that we’ve got it installed, let’s quickly use EFCodeFirst just to prove it’s working. For this example, you’ll need SQL Server installed (there are other options, but one thing at a time). I’ve got Express which works fine. In another post I’ll show the new SQL Server Compact Edition 4, which coincidentally you can add to a project using NuGet <img src="http://blog.efvincent.com/wp-content/uploads/2011/01/wlEmoticon-smile.png" alt="Smile" />.</p>
+
+<p>EFCodeFirst allows you to build POCO objects and use them to build a DB. Let’s build a quick model. There are a few examples floating around modeling blog posts and comments, so lets <em>not</em> do that. Let’s do (super simple) prescriptions and medications. It’s on my mind because I’m recovering from knee surgery. This code is entered directly into the Program.cs source file for this example.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Prescription</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">MedName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">Directions</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Quantity</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Refills</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">RefillsRemaining</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">ICollection</span><span class="p">&lt;</span><span class="n">FilledScript</span><span class="p">&gt;</span> <span class="n">FilledScripts</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">FilledScript</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Prescription</span> <span class="n">Script</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">DateTime</span> <span class="n">Filled</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Doses</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MedContext</span> <span class="p">:</span> <span class="n">DbContext</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">DbSet</span><span class="p">&lt;</span><span class="n">Prescription</span><span class="p">&gt;</span> <span class="n">Prescriptions</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">DbSet</span><span class="p">&lt;</span><span class="n">FilledScript</span><span class="p">&gt;</span> <span class="n">FilledScripts</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>We have a class for a Prescription, and one for a FilledScript (filled prescription). We give each one an integer Id, which EF will interpret (by convention) as the primary key and identity for each entity. A relation is created between them, again by convention. On the “one” side,  the Prescription has a collection of filled scripts, and on the “many” side, the filled script has a reference to its prescription.</p>
+
+<p>The <em>MedContext</em> class inherits from EF’s DbContext, and pulls the model together. Each DbSet&lt;…> identifies an entity to EF. In this minimal case, that’s all that’s required to define a model using EFCodeFirst. Lets take a look at using it:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">DbDatabase</span><span class="p">.</span><span class="n">SetInitializer</span><span class="p">(</span><span class="k">new</span> <span class="n">DropCreateDatabaseAlways</span><span class="p">&lt;</span><span class="n">MedContext</span><span class="p">&gt;());</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">ctx</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MedContext</span><span class="p">();</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Prescription</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">MedName</span> <span class="p">=</span> <span class="s">&quot;Vicoden&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">Directions</span> <span class="p">=</span> <span class="s">&quot;One every 4 hours as needed for pain&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">Quantity</span> <span class="p">=</span> <span class="m">60</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">Refills</span> <span class="p">=</span> <span class="m">2</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">RefillsRemaining</span> <span class="p">=</span> <span class="m">1</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">FilledScripts</span> <span class="p">=</span> <span class="k">new</span><span class="p">[]</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">FilledScript</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">Filled</span> <span class="p">=</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Parse</span><span class="p">(</span><span class="s">&quot;12/28/2010&quot;</span><span class="p">),</span>
+</span><span class='line'>                <span class="n">Doses</span> <span class="p">=</span> <span class="m">0</span>
+</span><span class='line'>            <span class="p">},</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">FilledScript</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">Filled</span> <span class="p">=</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Parse</span><span class="p">(</span><span class="s">&quot;1/12/2011&quot;</span><span class="p">),</span>
+</span><span class='line'>                <span class="n">Doses</span> <span class="p">=</span> <span class="m">48</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ctx</span><span class="p">.</span><span class="n">Prescriptions</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">ctx</span><span class="p">.</span><span class="n">SaveChanges</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">script</span> <span class="k">in</span> <span class="n">ctx</span><span class="p">.</span><span class="n">Prescriptions</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Script for {0}, filled {1} time(s), we have {2} doses on hand&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">script</span><span class="p">.</span><span class="n">MedName</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">script</span><span class="p">.</span><span class="n">FilledScripts</span><span class="p">.</span><span class="n">Count</span><span class="p">(),</span>
+</span><span class='line'>            <span class="n">script</span><span class="p">.</span><span class="n">FilledScripts</span><span class="p">.</span><span class="n">Sum</span><span class="p">(</span><span class="n">fs</span> <span class="p">=&gt;</span> <span class="n">fs</span><span class="p">.</span><span class="n">Doses</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;\nPress any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>For this simple example I’m just adding some data and retrieving it right from the main() function of the console app. Line 3 probably the only line that needs explanation. It’s a call to the static method SetInitializer() on the static DbDatabase class of EF. The parameter is a new instance of DropCreateDatabaseAlways<MedContext>. Creating this initializer with it’s type parameter set to our MedContext tells the EF engine that it should always drop the database and recreate it, every time the app is run. This is part of EF’s new fluent interface. Under almost no circumstance would you actually use this initializer, but it’s handy for testing and playing around. This way you can iterate over your model getting a new database for each run.</p>
+
+<p>The rest of the function adds a Prescription object with two FilledScript objects, and saves it in the context. It then loops through the prescriptions and writes some info to the console about each. No rocket science there.</p>
+
+<h2>Where did EF Create the Database?</h2>
+
+<p>One cool thing about EFCodeFirst is that you can leave off pretty much all the configuration information. We didn’t tell EF anything about how or where to create the database. It came up with some reasonable defaults. If you open SSMS and connect to your instance of SQL Express, you can see the database it created. Here’s a DB diagram in SSMS from what EF created:</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image5.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb5.png" alt="image" /></a></p>
+
+<p>The database it created (1) is named according to the context that it stores, MedContext for us. It created tables (2 &amp; 3) for the entities we created, and to implement the one to many relationship, it added a foreign key to the FilledScripts table linking it to the Prescriptions table. There’s always a DBA to disagree with an auto-generated schema, but in this simple case, you must admit there’s not a whole lot you could do differently. If we select the records out of the database after our run you get the expected results:</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/01/image6.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/01/image_thumb6.png" alt="image" /></a></p>
+
+<p>All of this was created by convention, and can also be overridden and specified explicitly using either attributes on the classes that make up the model, or by using EF’s fluent API. This barely scratches the surface, but hopefully gets you interested. I’ll cover EF in more depth in a future post, plus there’s plenty of info out there already.</p>
+
+<h2>Back to NuGet – Removing a Package</h2>
+
+<p>Ok, we’ve seen how easy it is to add a package like EFCodeFirst (and how cool EF itself is). NuGet also allows you to remove a package easily. In the Package Manager Console window, issue the command:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>PM&gt; Uninstall-Package EFCodeFirst
+</span><span class='line'>Successfully removed <span class="s1">&#39;EFCodeFirst 0.8&#39;</span> from ConsoleApplication2
+</span><span class='line'>Successfully uninstalled <span class="s1">&#39;EFCodeFirst 0.8&#39;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>NuGet will remove all traces of the package from your project. For EFCodeFirst there’s not much to remove. But other packages are far more complicated, even pulling in prerequisite packages, and modifying the web or app.config. NuGet undoes all these changes when a package is removed.</p>
+
+<h2>Try it yourself!</h2>
+
+<p>One great thing about NuGet is how painless it makes trying out new things. You’re not fouling up your precious work machine with a bunch of installations. You can create a quick test project, add a bunch of things you’ve always wanted to try, and just blow it all away when you’re done. No evidence you’ve been <em>learning</em>.</p>
+
+<p>Ever want to try Fluent NHibernate but didn’t feel like dealing with all the crap that goes with tracking it down and installing it? How about Ninject, Castle, ELMAH, iTextSharp, Moq, or Prism? They’re all out there. Just NuGet them and start playing / learning.</p>
+
+<h2>What else?</h2>
+
+<p>I didn’t even mention the wizardy, non-console approach. Right click on your project, and select Add Library Package Reference… and you get a pretty UI that lets you click instead of type. But you’re a coder. You can type.</p>
+
+<p>Publishing your own package. You can create any package you want. Perhaps one that pulls in some of your favorite utility classes. Or perhaps you’ve got some corporate libraries and frameworks that you want to be able to incorporate using NuGet. You can create your own private or a corporate NuGet gallery. Or if you have something worth while, publish it up to the official NuGet gallery, it’s own to the public.</p>
+
+<p>I hope you’ve found this ramble of mine useful. Search around for more NuGet goodness. There are plenty of bloggers way more interesting then me publishing good information.</p>
+
+<p>Happy Coding!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2011-01-12T18:27:26-05:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>6:27 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/basics/'>basics</a>, <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/entityframework/'>entityframework</a>, <a class='category' href='/blog/categories/nuget/'>nuget</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/01/12/open-source-nuget-and-more/" title="Previous Post: Open Source, MVC, MVVM, Entity Framework, NuGet, and More…">&laquo; Open Source, MVC, MVVM, Entity Framework, NuGet, and More…</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/05/27/practical-di-101/" title="Next Post: Practical Dependency Injection 101">Practical Dependency Injection 101 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness/';
+        var disqus_url = 'http://efvincent.github.io/blog/2011/01/12/nuget-geeky-goodness/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

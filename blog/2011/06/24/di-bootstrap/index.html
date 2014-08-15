@@ -1,0 +1,409 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>DI – Constructor Injection, Bootstrapping - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="Constructor Injection The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2011/06/24/di-bootstrap">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">DI – Constructor Injection, Bootstrapping</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-06-24T02:07:31-04:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>2:07 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Constructor Injection</h2>
+
+<p>The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are <em>injected</em> into the class by some external mechanism, as opposed to being “newed up” directly. The most common form of DI is constructor injection, where a class defines a constructor that has as its parameters the external dependencies required by the class.</p>
+
+<!-- more -->
+
+
+<p>There are several benefits to this particular method of injection; the most obvious is that in a well designed system the dependencies of a class are clearly visible in the constructor. In the <a href="http://blog.efvincent.com/practical-di-101">DI 101</a> post a data provider was defined like this:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DevDataProvider</span> <span class="p">:</span> <span class="n">IDataProvider</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IIdentService</span> <span class="n">_identService</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogService</span> <span class="n">_logSvc</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;</span> <span class="n">EmployeeStore</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Employee</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">DevDataProvider</span><span class="p">(</span><span class="n">IIdentService</span> <span class="n">identService</span><span class="p">,</span> <span class="n">ILogService</span> <span class="n">logSvc</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">identService</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;identService&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logSvc</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">ArgumentNullException</span><span class="p">(</span><span class="s">&quot;logSvc&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">_identService</span> <span class="p">=</span> <span class="n">identService</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">_logSvc</span> <span class="p">=</span> <span class="n">logSvc</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Remaining implementation omitted for brevity</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The constructor is on line 6. From this constructor we can see that the DevDataProvider has dependencies on an IIdentityService and an ILogService. There should be no other dependencies in the class other than to well known, stable libraries like the <a href="http://msdn.microsoft.com/en-us/library/hfa3fa08.aspx">BCL</a>.</p>
+
+<p>There are other advantages to using constructor injection. Should the list of dependencies get too long, say longer than four parameters, you’ve got a code smell that perhaps the class is doing too much, violating the single responsibility principal.</p>
+
+<h2>Bootstrapping</h2>
+
+<p>In order to be able to resolve dependencies, the DI container must be configured. This set up is done during the <strong>bootstrapping</strong> phase. Typically this only needs to be done once, but changes to the container make sense in some scenarios like when a DI container is being used to support extensions or plug-ins. In that case components might be added or removed from the DI container while the app is running. These scenarios are out of scope for this post.</p>
+
+<p>The container may be configured in several ways – Auto configuring, configuration in code, and configuration files (typically XML / app or web.config files). My current favorite DI framework is AutoFac, and I typically configure in code, but different projects will have different demands, so familiarize yourself with the specifics of your selected framework and understand the tradeoffs involved in the different types of configuration. You can even configure the DI container using more than one method – perhaps Auto configuring for the bulk of the registrations, then code or XML for more specific configuration needs.</p>
+
+<h2>Bootstrapping a Console Application</h2>
+
+<p>Depending on the type of application you’re working on, there are specific places for bootstrapping to take place. The <em>place</em> to do configuration and bootstrapping is sometimes referred to as the <strong>composition root</strong> <em>(you can read about these concepts in more detail in <a href="http://www.manning.com/seemann/">Mark Seeman’s Dependency Injection</a> book, published by Manning)</em>.</p>
+
+<p>In a console application, the static Main() method is a typical place to configure the container. While we rarely write console apps in production (at least I rarely do), the simplicity makes it easy to see the implications of the bootstrapping procedure.</p>
+
+<p>In the following sequence diagram, in step one [1] the Main() entry point is called on the console application. Main() is serving as the composition root. From there a private Bootstrap() methods is called [2] and the DI container is configured. The exact mechanism varies by framework.</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2011/06/Capture.png"><img src="http://blog.efvincent.com/wp-content/uploads/2011/06/Capture_thumb.png" alt="Capture" /></a></p>
+
+<p>Once the container is configured, the main entry point requests that the DI container resolve the App type [3]. The DI container creates whatever dependencies are required by the App [4]. This happens hierarchically; dependencies may themselves have dependencies and so on. The DI container sorts all this out and is also responsible for lifetimes of create objects etc. The DI container can create and return the instance off the App [5]. The Main() function can then pass control to the app [6] which will leverage the injected dependencies [7] to do the real work.</p>
+
+<h2>Only Directly Reference the DI Container in the Bootstrapper</h2>
+
+<p>This is an important point, and if you get nothing else from this post, understand this.</p>
+
+<ul>
+<li>The DI container is configured in the composition root (Main() in this case)</li>
+<li>The DI container is used to resolve or build the App</li>
+<li>The app is then run to do the work</li>
+</ul>
+
+
+<p>Once the app is instantiated, it should have all of its dependencies injected. <strong>The app should not have a reference to the DI container!</strong> If we allow the app or any of its dependencies to have access to the container, then several bad things happen:</p>
+
+<h4>We’ve taken on a dependency to the DI Container itself</h4>
+
+<p>Yes its true that the assembly has a dependency on the DI container. But for purposes of this discussion the assembly is not the application. The App class and the services (other classes) it depends on is the application. We don’t want to take a dependency on the DI container in those classes; rather, we should be able to switch to a different DI container if needed and not effect the App and the dependent services.</p>
+
+<p>In any kind of a significant application the app’s classes would be in a different assembly, and services might be scattered across even more assemblies, and those should not have a dependency on a DI container. They should however be designed and built with the DI pattern in mind – with the dependencies specified in the constructor, with references to abstract types or interfaces, rather than to concrete implementations.</p>
+
+<h4>We’re hiding a dependency inside the App</h4>
+
+<p>Earlier I mentioned that a benefit of constructor injection is that the dependencies are clearly visible (even <em>documented</em> if you will) in the signature of the constructor. We really don’t want to see lines like this buried in the methods of the classes:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// Anti-pattern - don&#39;t use DI container except</span>
+</span><span class='line'><span class="c1">// in composition root</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">var</span> <span class="n">dal</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IDataAccessService</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// And defintely don&#39;t do this</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">var</span> <span class="n">dal</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SqlDataAccessService</span><span class="p">(</span><span class="n">connectString</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>A class that that has these lines buried inside somewhere has hidden dependencies on both the DI container and IDataAccessService (or worse, by using the new keyword directly, on the SqlDataAccessService). These hidden dependencies undermine the benefits of using DI containers at all.</p>
+
+<h3>Bootstrapping in other Application Types</h3>
+
+<p>Other types of apps have different places for bootstrapping and application roots. Unlike a console app, an ASP.NET MVC 3 application isn’t top-down linear, the application must respond to web requests. It does so by creating instances of controllers, and calling methods on those controllers to respond to web requests.</p>
+
+<p>A controller in MVC3 is like the app was in our console example above. It will be resolved, or created, by the DI container. Controllers are different in that there will likely be several different controllers in an MVC application. Also, we don’t get to resolve a controller and tell it to run right from the composition root, the ASP.NET MVC framework will be receiving web requests and will need to resolve controllers later, after bootstrapping.</p>
+
+<p>In ASP.NET MVC 3 this is accomplished by providing a <em>hook</em>, or a place where we can supply a DI container for ASP.NET MVC 3 to use when creating controllers. The developer configures the DI container, and then wires that container into the MVC framework via an instance of IControllerActivator. In the case of AutoFac, there’s a <a href="http://nuget.org/List/Packages/Autofac.Mvc3">NuGet package called AutoFac.Mvc3</a> that includes classes to integrate with MVC3. The implementation details are beyond the scope of this post – just <a href="http://duckduckgo.com/">DuckDuckGo</a> AutoFac.Mvc and find a wealth of additional detail. Same goes for WCF, WPF, and Silverlight applications. There are best practices for configuring DI containers for each app type.</p>
+
+<h3>DI Unfriendly Application Types</h3>
+
+<p>Some application types just do not lend themselves very easily to dependency injection patterns. Classic ASP.NET pops into mind immediately. It was written before Microsoft was as willing to accept OSS, community driven concepts such as DI Containers. A big red flag with ASP.NET is that all subclasses to the Page class (which is what all your ASP.NET pages are) must have a parameterless default constructor. Well there goes parameter injection!</p>
+
+<p>There are other mechanisms for implementing DI patterns in this case, but they’re sub-optimal. Again I’d refer you to <a href="http://www.manning.com/seemann/">Mark Seeman’s Dependency Injection</a> book, which is far and away the best DI book in the .NET space, for advice and examples in dealing with DI unfriendly application types.</p>
+
+<h3>In Summary</h3>
+
+<p>Hopefully this was helpful in your understanding of a couple of key aspects of using DI containers. Practice a few console applications, and write some tests too. Once you get the idea, move on to more interesting application types. Before long you’ll be shocked you ever wrote applications <em>without</em> some degree of dependency injection. Yea – it’s that good for you.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2011-06-24T02:07:31-04:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>2:07 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/autofac/'>autofac</a>, <a class='category' href='/blog/categories/basics/'>basics</a>, <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/dependency-injection/'>dependency injection</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2011/06/24/di-bootstrap/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2011/06/24/di-bootstrap/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/05/27/di-mock/" title="Previous Post: A Taste of Dependency Injection, Testing, and Mocking">&laquo; A Taste of Dependency Injection, Testing, and Mocking</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/08/15/abandonment-issues/" title="Next Post: Abandonment Issues">Abandonment Issues &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2011/06/24/di-bootstrap/';
+        var disqus_url = 'http://efvincent.github.io/blog/2011/06/24/di-bootstrap/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

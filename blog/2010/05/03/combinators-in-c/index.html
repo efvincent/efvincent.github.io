@@ -1,0 +1,596 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Combinators in C# - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2010/05/03/combinators-in-c">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Combinators in C#</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2010-05-03T01:15:43-04:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2010</span></span> <span class='time'>1:15 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a &ldquo;first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
+
+<!-- more -->
+
+
+<p>Combinators are high order functions that compose, combine, or otherwise modify functions in useful and interesting ways. These types of operations are not typically seen in C#, but expanding your problem solving toolkit to include these concepts is not only fun and interesting, but can result in new, efficient, robust solutions.</p>
+
+<h2>The Timer</h2>
+
+<p>Imagine you’ve got a method that you want to put a stopwatch on. For example, in the following code, you need to see how long it’s taking each download to complete, for debugging information.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">class</span> <span class="nc">Program</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">static</span> <span class="kt">string</span> <span class="n">url</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://microsoft.com&quot;</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://amazon.com&quot;</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://dpreview.com&quot;</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">RetrieveFromWeb</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span> <span class="n">wc</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">();</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">s</span> <span class="p">=</span> <span class="n">wc</span><span class="p">.</span><span class="n">DownloadString</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;URL: {0} - string length is {1}&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">s</span><span class="p">.</span><span class="n">Length</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>An ugly solution would be to do this.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">sw</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Diagnostics</span><span class="p">.</span><span class="n">Stopwatch</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">sw</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://microsoft.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;{0:#,##0}ms&quot;</span><span class="p">,</span> <span class="n">sw</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">sw</span><span class="p">.</span><span class="n">Restart</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://amazon.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;{0:#,##0}ms&quot;</span><span class="p">,</span> <span class="n">sw</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">sw</span><span class="p">.</span><span class="n">Restart</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://dpreview.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">RetrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;{0:#,##0}ms&quot;</span><span class="p">,</span> <span class="n">sw</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Try not to get physically ill. You and I both know there’s plenty of code running around in the wild that looks a lot like this. Red flags – you see repeated code – starting, stopping, printing the time. Should we go into the RetrieveFromWeb() method and modify it for timing? Let’s not. Lets try this instead. Step one, let’s define a variable for the method we’re calling. Leaving out the timing code for now, we make this change:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{&lt;/</span><span class="n">p</span><span class="p">&gt;&lt;</span><span class="n">p</span><span class="p">&gt;</span>    <span class="c1">// Create a delegate, set it to the method of interest&lt;/p&gt;&lt;p&gt;    Action retrieveFromWeb = RetrieveFromWeb;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://microsoft.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">retrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://amazon.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">retrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">url</span> <span class="p">=</span> <span class="s">&quot;http://dpreview.com&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">retrieveFromWeb</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>I’ve added a local variable of type <em>Action, </em>and set it equal to the call to the method <em>RetrieveFromWeb(),</em> and now we’re calling that method indirectly. It has the same exact effect, the method gets called three times. Only we’ve added a layer of indirection. We do this all the time in OO programming; for example, you might have a Person object, but rather than coding directly to that object, you create an IPerson interface, and code to that, opening up the possibility of mocking the object, decorating it, etc. Similar thing here. Rather than “binding” the call sites directly to the method, we’re binding to a variable that points to the method.</p>
+
+<p>We’re doing this because now we’ve got a value that can be altered or augmented to add additional functionality. This is where a combinator comes in. This is a simple timer combinator:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">class</span> <span class="nc">Combinators</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Action</span> <span class="nf">Time</span><span class="p">(</span><span class="n">Action</span> <span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">sw</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Diagnostics</span><span class="p">.</span><span class="n">Stopwatch</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">sw</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>            <span class="k">try</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">a</span><span class="p">();</span>
+</span><span class='line'>            <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;{0:#,##0}ms&quot;</span><span class="p">,</span> <span class="n">sw</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>This combinator takes an <em>Action</em> and returns a new action (aka a new function), that has timing included. At line 8 the parameter action is being called, the timing is what’s added. The only change we have to make to the main method is where the delegate is being defined:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">Action</span> <span class="n">retrieveFromWeb</span> <span class="p">=</span> <span class="n">Combinators</span><span class="p">.</span><span class="n">Time</span><span class="p">(</span><span class="n">RetrieveFromWeb</span><span class="p">);&lt;/</span><span class="n">p</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The rest of the method stays the same, but now, there’s timing added. This is a super-simple, contrived example, but you should be starting to see what’s possible. Let’s take this a step further. Here’s an example simulating retrieval of information from the database:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="n">Guid</span><span class="p">&gt;</span> <span class="n">lookupUser</span> <span class="p">=</span> <span class="n">LookupUser</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">emails</span> <span class="p">=</span> <span class="k">new</span><span class="p">[]</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s">&quot;eric@work.com&quot;</span><span class="p">,</span> <span class="s">&quot;joel@office.com&quot;</span><span class="p">,</span> <span class="s">&quot;cole@school.com&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s">&quot;karin@job.com&quot;</span><span class="p">,</span> <span class="s">&quot;haley@home.com&quot;</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">em</span> <span class="k">in</span> <span class="n">emails</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">id</span> <span class="p">=</span> <span class="n">lookupUser</span><span class="p">(</span><span class="n">em</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;user {0} id = {1}&quot;</span><span class="p">,</span> <span class="n">em</span><span class="p">,</span> <span class="n">id</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="n">Guid</span> <span class="nf">LookupUser</span><span class="p">(</span><span class="kt">string</span> <span class="n">email</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Fake looking up a user in the database</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">rnd</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">.</span><span class="n">Millisecond</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">Thread</span><span class="p">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">rnd</span><span class="p">.</span><span class="n">Next</span><span class="p">(</span><span class="m">250</span><span class="p">,</span> <span class="m">2500</span><span class="p">));</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">Guid</span><span class="p">.</span><span class="n">NewGuid</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Memoization is the idea that a function can remember the results for given parameters. It’s like caching, but the term is specific to caching function results based on input. Here’s a simple Memoization combinator for C#:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;</span> <span class="n">Memoize</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">dict</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">a</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">B</span> <span class="n">b</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="n">B</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">dict</span><span class="p">.</span><span class="n">TryGetValue</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="k">out</span> <span class="n">b</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">b</span> <span class="p">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">dict</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>It’s simple, but it demonstrates some very useful and interesting functional programming concepts. First, it’s takes and returns Func&lt;A,B>. This is a delegate with a parameter of type A that returns a type B. This will work for effectively any method with that signature. Next point of interest, a dictionary is created, then the lambda is created and returned. The lambda refers to the dictionary defined outside the lambda. It is said that the dictionary is <em>captured</em> in a <em>closure</em>. It’s not important that you remember the terms, but look over the code and see if the concept is clicking for you. This function will return (effectively) a function, the dictionary is <em>captured</em> by that function. Even when the call to Memoize() goes out of scope, the dict variable will still exist in the returned function. Enough talk. We modify the main program just slightly:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="n">Guid</span><span class="p">&gt;</span> <span class="n">lookupUser</span> <span class="p">=</span> <span class="n">Combinators</span><span class="p">.</span><span class="n">Memoize</span><span class="p">(</span><span class="n">LookupUser</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The Memoize function will create a new function, one that caches results of the LookupUser function <em>automatically.</em> Nothing else has to change in the program to take advantage of this. Want to be sure that it’s actually working? Time it! The non-memoized LookupUser() has a built in Thread.Sleep(2500), and so takes 2.5sec * number of lookups to run. The memoized version will run almost instantly, so we can prove the memoizer is working by timing. The time combinator we created earlier was for timing Actions. I’ve created a overload of the time combinator that has the signature we need - Func&lt;A,B>:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;</span> <span class="n">Time</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">a</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">sw</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Diagnostics</span><span class="p">.</span><span class="n">Stopwatch</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">sw</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">try</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="nf">fn</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;{0:#,##0}ms&quot;</span><span class="p">,</span> <span class="n">sw</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>and added it to the definition of lookUpUser in the main function</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="n">Guid</span><span class="p">&gt;</span> <span class="n">lookupUser</span> <span class="p">=</span>
+</span><span class='line'>  <span class="n">Combinators</span><span class="p">.</span><span class="n">Time</span><span class="p">(</span>
+</span><span class='line'>      <span class="n">Combinators</span><span class="p">.</span><span class="n">Memoize</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="n">Guid</span><span class="p">&gt;(</span><span class="n">LookupUser</span><span class="p">));&lt;/</span><span class="n">p</span><span class="p">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Again without modifying the main code, we’ve augmented the method. Throw in some duplicate email addresses to test it out. The real power of these techniques becomes more evident the more you use them. Functional programming developers have been using these are similar techniques for years, and now with the added ability and flexibility of C#, we can employ these patters as well.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2010-05-03T01:15:43-04:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2010</span></span> <span class='time'>1:15 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/closure/'>closure</a>, <a class='category' href='/blog/categories/combinator/'>combinator</a>, <a class='category' href='/blog/categories/delegate/'>delegate</a>, <a class='category' href='/blog/categories/f-number/'>f#</a>, <a class='category' href='/blog/categories/functional/'>functional</a>, <a class='category' href='/blog/categories/lambda/'>lambda</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2010/05/03/combinators-in-c/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2010/05/03/combinators-in-c/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/04/27/parsing-json-using-f/" title="Previous Post: Parsing Json using F#">&laquo; Parsing Json using F#</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2010/08/22/in-car-videocarolina-motorsports-park/" title="Next Post: In Car Video–Carolina Motorsports Park">In Car Video–Carolina Motorsports Park &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2010/05/03/combinators-in-c/';
+        var disqus_url = 'http://efvincent.github.io/blog/2010/05/03/combinators-in-c/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

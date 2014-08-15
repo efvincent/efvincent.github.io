@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Reflector | Curried Functions]]></title>
+  <link href="http://efvincent.github.io/blog/categories/reflector/atom.xml" rel="self"/>
+  <link href="http://efvincent.github.io/"/>
+  <updated>2014-08-15T17:06:25-04:00</updated>
+  <id>http://efvincent.github.io/</id>
+  <author>
+    <name><![CDATA[Eric F. Vincent]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[C# Nuts and Bolts: Delegates and Functions, Part I]]></title>
+    <link href="http://efvincent.github.io/blog/2009/08/24/nuts-bolts-delegates-functions-1/"/>
+    <updated>2009-08-24T23:32:21-04:00</updated>
+    <id>http://efvincent.github.io/blog/2009/08/24/nuts-bolts-delegates-functions-1</id>
+    <content type="html"><![CDATA[<p>Two years ago I took up the <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> programming language, purely out of intellectual curiosity. For me, <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> was a gateway drug to functional programming in general. I’ve since spent a good bit of time with <a href="http://msdn.microsoft.com/en-us/fsharp/default.aspx">F#</a> and <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language">Haskell</a>). With the consulting work I do I don’t have the opportunity to use these languages in production, but I have found that using these languages has unlocked a new worlds of problem solving techniques.</p>
+
+<p>This series lays down a groundwork of C# understanding upon which we can build a library of modern problem solving techniques, where we take the most useful functional approaches, and see how to apply them to C# programming in .NET. Even if you’ve not any interest in functional programming, this series can be of service helping you understand some of the less obvious aspects of C# programming.</p>
+
+<!-- more -->
+
+
+<h2>Delegates</h2>
+
+<p>C++ has pointers to functions. C# has delegates. A <a href="http://msdn.microsoft.com/en-us/library/ms173171(VS.80">delegate</a>.aspx) is a .NET type that can be thought of as a type safe function pointer. A function pointer is a variable that instead of pointing to or containing data, points to a function. This variable can be used to invoke, or call, the function it is pointing at.</p>
+
+<p><em>Type safe</em> refers to the fact that a delegate variable cannot point to just any function, it can only point to a function that matches the delegate&rsquo;s <em>signature</em>. Signature refers to the parameters and return value of the function. Together, the parameters and return type form a fingerprint for a function which must match that the delegate.</p>
+
+<p>In this example, a delegate is created at line 5 called <code>GetStatsDelegate</code>where the signature specifies a single <code>string</code> parameter and an <code>integer</code> return value. Judging from the name, the delegate should point to a function that gets some stats about a string.</p>
+
+<pre><code class="C#">class Program
+{
+    // define a delegate type for a function that takes a
+    // string and returns an int
+    delegate int GetStatsDelegate(string str);
+
+    public static void main() {
+
+        // Define a variable of our new delegate type, and
+        // assign it a value. Any method with the same signature
+        // can be assigned to this variable.
+        GetStatsDelegate myFunc = GetLengthWithoutSpaces;
+
+        // Both these print 0
+        Console.WriteLine(myFunc("Hello"));
+        Console.WriteLine(GetLengthWithoutSpaces("Hello"));
+    }
+
+    // This is a function that we can point to, because it has
+    // the right signature for our delegate
+    public static int GetLengthWithoutSpaces(string s) {
+        return 0;
+    }
+}
+</code></pre>
+
+<p>At line 12 the delegate we created (which is a type) is used to define a variable, <code>myFunc</code>. We then set <code>myFunc’s</code> value equal to <code>GetLengthWithoutSpaces</code>, which is a function. Lines 15 and 16 call the function, once using the delegate, and once the traditional way.<a href="http://blog.efvincent.com/wp-content/uploads/2009/08/image.png"><img src="http://blog.efvincent.com/wp-content/uploads/2009/08/image_thumb.png" alt="image" /></a></p>
+
+<p>Here’s where it starts to get interesting. This is a snip from <a href="http://www.red-gate.com/products/reflector/">Reflector</a>, looking at how <code>GetStatsDelegate</code> is defined.  We defined it as a delegate, but the compiler has built what looks like a standard class which inherits from the MulticastDelegate framework class.</p>
+
+<p>This is good to know. C# treats delegates in a special way. They’ve been granted their own keyword and a special unique way of declaration. The declaration declares a subclass for us, saving us the trouble of building out a subclass ourselves. If we use Reflector to dig into the base class (System.Delegate), we see these properties and fields:</p>
+
+<pre><code class="C#">// *** From Delegate ***
+
+// Properties
+public MethodInfo Method { get; }
+public object Target { get; }
+
+// Fields
+internal MethodBase _methodBase;
+internal IntPtr _methodPtr;
+internal IntPtr _methodPtrAux;
+internal object _target;
+
+// *** From MulticastDelegate ***
+
+// Fields
+private IntPtr _invocationCount;
+private object _invocationList;
+</code></pre>
+
+<p>These fields tell us a few things. An instance of a delegate has reflection information about the method it points to, this is what the <code>MethodInfo</code> public property. The pointer to the function itself is of type <code>IntPtr</code>, which we can think about as a pointer to memory.</p>
+
+<p>The <code>_target</code> field is important too. In the case of a delegate that points to an instance method (ie a non-static method on a non-null object), the <code>_target</code> field points to the object with the method. This is important because it is not obvious from looking at code that a delegate holds a reference to the object with the method. It’s possible for this to be the source of memory leaks, where objects cannot be garbage collected because a delegate is holding a reference. You see this most often in events. Being delegates, events hold references that need to be <em>unregistered</em> in order to release these references.</p>
+
+<p>Also we have something called <code>_invocationList</code>, which if we dig through the disassembly we come to find is an array of Delegates implemented as a linked list using pointers (<code>IntPtr</code>) directly for performance reasons. This means that <code>MulticastDelegates</code> are delegates that have a chain of additional delegates. This is used heavily in .NET’s event mechanism, where an <em>event</em> can have multiple <em>handlers</em>. The handlers are simply functions wrapped in delegates added to the linked list of a the event <code>MulticastDelegate</code>.</p>
+
+<p>Next post we’ll look at using delegates, not as events (which anyone who has ever dropped a button on a form knows about), but as function pointers and objects, and start looking at some novel approaches to solving common problems.</p>
+
+<p><em>As always if you’ve got questions or topics you’d like me to follow up on, please leave a not in the comments!</em></p>
+]]></content>
+  </entry>
+  
+</feed>

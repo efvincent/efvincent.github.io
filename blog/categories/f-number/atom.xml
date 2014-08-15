@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: F# | Curried Functions]]></title>
+  <link href="http://efvincent.github.io/blog/categories/f-number/atom.xml" rel="self"/>
+  <link href="http://efvincent.github.io/"/>
+  <updated>2014-08-15T17:06:25-04:00</updated>
+  <id>http://efvincent.github.io/</id>
+  <author>
+    <name><![CDATA[Eric F. Vincent]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[In Car Video–Carolina Motorsports Park]]></title>
+    <link href="http://efvincent.github.io/blog/2010/08/22/in-car-videocarolina-motorsports-park/"/>
+    <updated>2010-08-22T19:57:06-04:00</updated>
+    <id>http://efvincent.github.io/blog/2010/08/22/in-car-videocarolina-motorsports-park</id>
+    <content type="html"><![CDATA[<p>I’ve just finished uploading a new in-car video from the Hurricane region PCA Driver’s Ed event at Carolina Motorsports Park in South Carolina. View it embedded here, or click the link below the picture to go to Vimeo.</p>
+
+<p><a href="http://vimeo.com/14339850">PCA DE CMP August 2010</a> from <a href="http://vimeo.com/efvincent">Eric Vincent</a> on <a href="http://vimeo.com">Vimeo</a>.</p>
+
+<p> <!-- more --></p>
+
+<p>Some notes about the video and data acquisition, for those interested in the gory, geeky details:</p>
+
+<p>· Video was shot on a <a href="http://www.amazon.com/gp/product/B002VA57XC">GoPro HD</a>. Last year I tried a ContourHD, but the picture wasn’t quite as good and the sound was terrible – the GoPro does a better job dealing with the wind noise.</p>
+
+<p>· The data (speedo, Tach, Throttle position) was collected using a <a href="http://www.amazon.com/PLX-Devices-2340-KIWI-Wifi/dp/B002ICSOTC">PLX 2340 KIWI Wifi</a>. This device interfaces with the OBD-II port of your car (also used by mechanics to read diagnostics), and transmits several different types of metrics in real time over Wi-Fi at with an observed sample rate of about 3 samples / second.</p>
+
+<p>· The data was then recorded using <a href="http://www.devtoaster.com/products/rev/">Rev by DevToaster</a> for iPhone. This app is compatible with the PLX, so it can collect data being transmitted by your car. It also adds accelerometer data. There’s GPS too, but the iPhone’s GPS is completely unusable for track purposes. The sampling frequency is too low, and it does some very funky interpolation which in the end renders the GPS data useless. For example, here’s a simple plot (graphed using F#) of one of the runs:</p>
+
+<p><a href="http://blog.efvincent.com/wp-content/uploads/2010/08/GPSPlot10081401.png"><img src="http://blog.efvincent.com/wp-content/uploads/2010/08/GPSPlot10081401_thumb.png" alt="GPS Plot 100814-01" /></a></p>
+
+<p>· The data is then exported from the phone as an emailed comma separated value file (.csv).</p>
+
+<p>· A small program I wrote in F# reads the file and transforms the timestamps in to frame numbers (29.97 frames/second), and the data into either rotational data (for the analog gauges) or simple integers (for the digital gauges).</p>
+
+<p>· That data can then be imported into Adobe After Effects. Images of the gauges (drawn from scratch in Adobe Illustrator) are animated into a video overlay using the PLX/Rev data.</p>
+
+<p>· Adobe Premiere then takes the gauges and overlays them on top of the video from the track. There’s some fiddling involved to get the gauge data and video in sync. Premiere then renders the video (20 minutes took 6 hours&hellip; not sure if I’m doing that right).</p>
+
+<p>· That rendered video is HD and is pretty big, so I used Microsoft Expression Encoder (Adobe has an encoder too) to re-encode the video into a smaller MP4 format that Vimeo wanted for uploading.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Combinators in C#]]></title>
+    <link href="http://efvincent.github.io/blog/2010/05/03/combinators-in-c/"/>
+    <updated>2010-05-03T01:15:43-04:00</updated>
+    <id>http://efvincent.github.io/blog/2010/05/03/combinators-in-c</id>
+    <content type="html"><![CDATA[<p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a &ldquo;first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
+
+<!-- more -->
+
+
+<p>Combinators are high order functions that compose, combine, or otherwise modify functions in useful and interesting ways. These types of operations are not typically seen in C#, but expanding your problem solving toolkit to include these concepts is not only fun and interesting, but can result in new, efficient, robust solutions.</p>
+
+<h2>The Timer</h2>
+
+<p>Imagine you’ve got a method that you want to put a stopwatch on. For example, in the following code, you need to see how long it’s taking each download to complete, for debugging information.</p>
+
+<pre><code class="C#">class Program {
+
+    static string url;
+
+    static void Main(string[] args) {
+
+        url = "http://microsoft.com";
+        RetrieveFromWeb();
+
+        url = "http://amazon.com";
+        RetrieveFromWeb();
+
+        url = "http://dpreview.com";
+        RetrieveFromWeb();
+
+        Console.Write("Press any key...");
+        Console.ReadKey(true);
+    }
+
+    static void RetrieveFromWeb() {
+        System.Net.WebClient wc = new System.Net.WebClient();
+        var s = wc.DownloadString(url);
+        Console.WriteLine("URL: {0} - string length is {1}", url, s.Length);
+    }
+}
+</code></pre>
+
+<p>An ugly solution would be to do this.</p>
+
+<pre><code class="C#">static void Main(string[] args) {
+    var sw = new System.Diagnostics.Stopwatch();
+
+    sw.Start();
+    url = "http://microsoft.com";
+    RetrieveFromWeb();
+    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+
+    sw.Restart();
+    url = "http://amazon.com";
+    RetrieveFromWeb();
+    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+
+    sw.Restart();
+    url = "http://dpreview.com";
+    RetrieveFromWeb();
+    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+
+    Console.Write("Press any key...");
+    Console.ReadKey(true);
+}
+</code></pre>
+
+<p>Try not to get physically ill. You and I both know there’s plenty of code running around in the wild that looks a lot like this. Red flags – you see repeated code – starting, stopping, printing the time. Should we go into the RetrieveFromWeb() method and modify it for timing? Let’s not. Lets try this instead. Step one, let’s define a variable for the method we’re calling. Leaving out the timing code for now, we make this change:</p>
+
+<pre><code class="C#">static void Main(string[] args) {&lt;/p&gt;&lt;p&gt;    // Create a delegate, set it to the method of interest&lt;/p&gt;&lt;p&gt;    Action retrieveFromWeb = RetrieveFromWeb;
+
+    url = "http://microsoft.com";
+    retrieveFromWeb();
+
+    url = "http://amazon.com";
+    retrieveFromWeb();
+
+    url = "http://dpreview.com";
+    retrieveFromWeb();
+
+    Console.Write("Press any key...");
+    Console.ReadKey(true);
+}
+</code></pre>
+
+<p>I’ve added a local variable of type <em>Action, </em>and set it equal to the call to the method <em>RetrieveFromWeb(),</em> and now we’re calling that method indirectly. It has the same exact effect, the method gets called three times. Only we’ve added a layer of indirection. We do this all the time in OO programming; for example, you might have a Person object, but rather than coding directly to that object, you create an IPerson interface, and code to that, opening up the possibility of mocking the object, decorating it, etc. Similar thing here. Rather than “binding” the call sites directly to the method, we’re binding to a variable that points to the method.</p>
+
+<p>We’re doing this because now we’ve got a value that can be altered or augmented to add additional functionality. This is where a combinator comes in. This is a simple timer combinator:</p>
+
+<pre><code class="C#">class Combinators {
+
+    public static Action Time(Action a) {
+        return () =&gt; {
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            try {
+                a();
+            } finally {
+                Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+            }
+        };
+    }
+}
+</code></pre>
+
+<p>This combinator takes an <em>Action</em> and returns a new action (aka a new function), that has timing included. At line 8 the parameter action is being called, the timing is what’s added. The only change we have to make to the main method is where the delegate is being defined:</p>
+
+<pre><code class="C#">Action retrieveFromWeb = Combinators.Time(RetrieveFromWeb);&lt;/p&gt;
+</code></pre>
+
+<p>The rest of the method stays the same, but now, there’s timing added. This is a super-simple, contrived example, but you should be starting to see what’s possible. Let’s take this a step further. Here’s an example simulating retrieval of information from the database:</p>
+
+<pre><code class="C#">static void Main(string[] args) {
+
+    Func&lt;string, Guid&gt; lookupUser = LookupUser;
+
+    var emails = new[] {
+        "eric@work.com", "joel@office.com", "cole@school.com",
+        "karin@job.com", "haley@home.com" };
+
+    foreach (var em in emails) {
+        var id = lookupUser(em);
+        Console.WriteLine("user {0} id = {1}", em, id);
+    }
+
+    Console.Write("Press any key...");
+    Console.ReadKey(true);
+}
+
+static Guid LookupUser(string email) {
+    // Fake looking up a user in the database
+    var rnd = new Random(System.DateTime.Now.Millisecond);
+    Thread.Sleep(rnd.Next(250, 2500));
+    return Guid.NewGuid();
+}
+</code></pre>
+
+<p>Memoization is the idea that a function can remember the results for given parameters. It’s like caching, but the term is specific to caching function results based on input. Here’s a simple Memoization combinator for C#:</p>
+
+<pre><code class="C#">public static Func&lt;A, B&gt; Memoize&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
+    var dict = new Dictionary&lt;A, B&gt;();
+    return a =&gt; {
+        B b = default(B);
+        if (!dict.TryGetValue(a, out b)) {
+            b = fn(a);
+            dict.Add(a, b);
+        }
+        return b;
+    };
+}
+</code></pre>
+
+<p>It’s simple, but it demonstrates some very useful and interesting functional programming concepts. First, it’s takes and returns Func&lt;A,B>. This is a delegate with a parameter of type A that returns a type B. This will work for effectively any method with that signature. Next point of interest, a dictionary is created, then the lambda is created and returned. The lambda refers to the dictionary defined outside the lambda. It is said that the dictionary is <em>captured</em> in a <em>closure</em>. It’s not important that you remember the terms, but look over the code and see if the concept is clicking for you. This function will return (effectively) a function, the dictionary is <em>captured</em> by that function. Even when the call to Memoize() goes out of scope, the dict variable will still exist in the returned function. Enough talk. We modify the main program just slightly:</p>
+
+<pre><code class="C#">Func&lt;string, Guid&gt; lookupUser = Combinators.Memoize(LookupUser);
+</code></pre>
+
+<p>The Memoize function will create a new function, one that caches results of the LookupUser function <em>automatically.</em> Nothing else has to change in the program to take advantage of this. Want to be sure that it’s actually working? Time it! The non-memoized LookupUser() has a built in Thread.Sleep(2500), and so takes 2.5sec * number of lookups to run. The memoized version will run almost instantly, so we can prove the memoizer is working by timing. The time combinator we created earlier was for timing Actions. I’ve created a overload of the time combinator that has the signature we need - Func&lt;A,B>:</p>
+
+<pre><code class="C#">public static Func&lt;A, B&gt; Time&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
+    return a =&gt; {
+        var sw = new System.Diagnostics.Stopwatch();
+        sw.Start();
+        try {
+            return fn(a);
+        } finally {
+            Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+        }
+    };
+}
+</code></pre>
+
+<p>and added it to the definition of lookUpUser in the main function</p>
+
+<pre><code class="C#">Func&lt;string, Guid&gt; lookupUser =
+  Combinators.Time(
+      Combinators.Memoize&lt;string,Guid&gt;(LookupUser));&lt;/p&gt;
+</code></pre>
+
+<p>Again without modifying the main code, we’ve augmented the method. Throw in some duplicate email addresses to test it out. The real power of these techniques becomes more evident the more you use them. Functional programming developers have been using these are similar techniques for years, and now with the added ability and flexibility of C#, we can employ these patters as well.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Parsing Json Using F#]]></title>
+    <link href="http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f/"/>
+    <updated>2010-04-27T14:29:49-04:00</updated>
+    <id>http://efvincent.github.io/blog/2010/04/27/parsing-json-using-f</id>
+    <content type="html"><![CDATA[<p>I was in one of those curious moods the other day, and decided to check out the API for the service behind my RSS reader, <a href="http://www.newsgator.com/Individuals/FeedDemon/Default.aspx">FeedDemon</a>. I like this reader because it keeps my subscriptions and read / unread data synchronized across machines and my iPhone via an app called <a href="http://netnewswireapp.com/iphone/">NetNewsWire</a>.</p>
+
+<!-- more -->
+
+
+<p>Well it ends up that Google has gobbled up the service and it’s now Google Reader. Fair enough. It means you can also read your RSS feeds on the web at the Google reader site. Whatevs. It also turns out that Google has not publicized the API for that service yet. Yuck. But there are a couple of people out there (like <a href="http://code.google.com/p/pyrfeed/wiki/GoogleReaderAPI">here</a> and <a href="http://blog.martindoms.com/2009/08/15/using-the-google-reader-api-part-1/">here</a>) who have picked it apart using fiddler or some such thing.</p>
+
+<p>Well to put this meandering story to an end, I was playing with the API and it seems that some of the methods only return JSON. Others return XML, and others still are switchable. Messy. No wonder it’s not public yet. So that brings me to the point of this post… Parsing Json using F#.</p>
+
+<h3>Why F#?</h3>
+
+<p>I’ve avoided posting about F# to date, even though I love “playing” with it; I feel that posts about C# are more relevant. People are using F#, but I’ve never had the chance to use it on the job, and I don’t know anyone personally who has either. But since it’s <em>mainstream</em> now, what the heck. Plus parsing is one of those tasks that’s right up F#’s alley. If you haven’t worked with a functional language since college (or ever), give it a whirl. It’s refreshingly different from pure, straight, intensely object oriented thinking.</p>
+
+<h3>Json, Briefly</h3>
+
+<p>Most everyone knows what Json is by now. It’s just a tad more horrifying in real life as the supernatural killer from the Friday the 13th movies with whom it homophonetically shares its name. It’s a text format for representing data that can be evaluated in that wonderfully fast and lose language of the web, JavaScript, resulting in actual JavaScript objects. Read about it from the <a href="http://json.org">experts here</a>. Here’s an example of some awesome <a href="http://json.org">Json</a>:</p>
+
+<pre><code class="json">{
+    "glossary": {
+        "title": "example glossary",
+        "GlossDiv": {
+            "title": "S",
+            "GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+                    "SortAs": "SGML",
+                    "GlossTerm": "Standard Generalized Markup Language",
+                    "Acronym": "SGML",
+                    "Abbrev": "ISO 8879:1986",
+                    "GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                        "GlossSeeAlso": ["GML", "XML"]
+                    },
+                    "GlossSee": "markup"
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<h3>The Tokenizer</h3>
+
+<p>I’m no parsing / compiler / language expert, but I do know that tokenizing is the first step. This is when we run through the string and create tokens; identifying the open and close braces, the name value pairs, etc.</p>
+
+<p>First thing we want to look at is the Token type, which is a discriminated union. This type defines the <em>logical</em> things that are in the Json string. For example, an open quote, some characters, and a close quote is a string.</p>
+
+<pre><code class="Haskell">type Token =
+  | OpenBracket | CloseBracket
+  | OpenArray | CloseArray
+  | Colon | Comma
+  | String of string
+  | Number of string
+</code></pre>
+
+<p>For this simple parser, the tokens are as above, open and close bracket and square bracket (aka array), colon, comma, numbers, and strings. This is a good reason to start with Json, it’s painfully simple. The tokenize function below turns the string into a list of tokens.</p>
+
+<pre><code class="Haskell">let tokenize source =
+
+  let rec parseString acc = function
+    | '\\' :: '"' :: t -&gt; // escaped quote
+                          parseString (acc + "\"") t
+    | '"' :: t -&gt; // closing quote terminates
+                  acc, t
+    | c :: t -&gt; // otherwise accumulate
+                parseString (acc + (c.ToString())) t
+    | _ -&gt; failwith "Malformed string."
+
+  let rec token acc = function
+    | (')' :: _) as t -&gt; acc, t // closing paren terminates
+    | (':' :: _) as t -&gt; acc, t // colon terminates
+    | (',' :: _) as t -&gt; acc, t // comma terminates
+    | w :: t when Char.IsWhiteSpace(w) -&gt; acc, t // whitespace terminates
+    | [] -&gt; acc, [] // end of list terminates
+    | c :: t -&gt; token (acc + (c.ToString())) t // otherwise accumulate chars
+
+  let rec tokenize' acc = function
+    | w :: t when Char.IsWhiteSpace(w) -&gt; tokenize' acc t   // skip whitespace
+    | '{' :: t -&gt; tokenize' (OpenBracket :: acc) t
+    | '}' :: t -&gt; tokenize' (CloseBracket :: acc) t
+    | '[' :: t -&gt; tokenize' (OpenArray :: acc) t
+    | ']' :: t -&gt; tokenize' (CloseArray :: acc) t
+    | ':' :: t -&gt; tokenize' (Colon :: acc) t
+    | ',' :: t -&gt; tokenize' (Comma :: acc) t
+    | '"' :: t -&gt; // start of string
+      let s, t' = parseString "" t
+      tokenize' (Token.String(s) :: acc) t'
+    | '-' :: d :: t when Char.IsDigit(d) -&gt; // start of negative number
+        let n, t' = token ("-" + d.ToString()) t
+        tokenize' (Token.Number(n) :: acc) t'
+    | '+' :: d :: t | d :: t when Char.IsDigit(d) -&gt; // start of positive number
+        let n, t' = token (d.ToString()) t
+        tokenize' (Token.Number(n) :: acc) t'
+    | [] -&gt; List.rev acc // end of list terminates
+    | _ -&gt; failwith "Tokinzation error"
+
+  tokenize' [] source
+</code></pre>
+
+<p>We don’t have time for the full treatment of F#. If there’s any interest, I’ll post up some tutorials or at least links to some of the very many existing good tutorials out there already. For now, assume we have an understanding of the syntax, and the logic of tokenizing and parsing is what we’re after here.</p>
+
+<p>One of the first things we see is that <em>tokenize</em> defines a few functions within the function. Great feature of F#, allowing definitions of inner functions; it allows the coder to partition logic without having function explosion.</p>
+
+<p>The driving inner function is <em>tokenize’</em>, whose signature is (Token list –> char list –> Token list). This means it takes a Token list and a char list, and returns a Token list. The first token list (acc) is an accumulator. This list is built up as the procedure calls itself recursively. This is a common pattern in functional languages, to “thread” an accumulator through recursive calls. The second parameter is a char list, or a list of characters from the source string.</p>
+
+<p>We don’t see the char list explicitly because of the use of the <em>function</em> keyword at like 20, this keyword means that the last parameter (the char list) is implicitly used in a match statement, the cases of which follow after the function keyword. The syntax would be equivalent to:</p>
+
+<pre><code class="Haskell">let rec tokenize' acc sourceChars =
+  match sourceChars with
+  | w :: t when Char.IsWhiteSpace(w) -&gt; tokenize' acc t   // skip whitespace
+  | '{' :: t -&gt; tokenize' (OpenBracket :: acc) t
+  | '}' :: t -&gt; tokenize' (CloseBracket :: acc) t
+</code></pre>
+
+<p>The idea that the sourceChars variable being passed immediately to the match..with construct is so common in F# that the <em>function</em> keyword is used as a contraction, allowing the elimination of what is an unnecessary variable. In many cases, this construct allows for a one line function definition.</p>
+
+<p>Most of the cases in the block matches a character which in turn maps to a token, which is appended to the accumulator (acc : Token list), and passed to a recursive call of tokenize’. This way the tokens are built up (in reverse order) as the string is traversed. This is seen in lines 22-27. Line 21 skips whitespace by calling tokenize’ without adding a token to the accumulator first.</p>
+
+<p>Things are a bit more interesting at lines 28, 31, and 34. Line 28 detects the beginning of a string, and starts a new recursive thread with the <em>parseString</em> function, the signature of which is (string –> char list –> string * char list). So the accumulator is a string, the “work” is being done on a char list, to which is passed our source char list, and the return is a tuple of string * char list, which is our parsed string and the rest of the source char list. One (of I’m sure <strong>many</strong>) optimizations that could be made is to use a mutable StringBuilder as the accumulator in parseString.</p>
+
+<p>The <em>token</em> function on line 12 does a similar job for non-string literals (numbers in this case, there are no bools in Json).</p>
+
+<p>Lastly, line 37 handles the case where we run out of source characters. The Token list we’ve been accumulating is backwards; we’ve been “appending” to the front of the list all this time. This is a common pattern. At the end, we return the reverse of the list. When the Json at the top is put through the tokenizer, we get this:</p>
+
+<pre><code class="Haskell">&gt; let tk = tokenize source;;
+
+val tk : Token list =
+  [OpenBracket; String "glossary"; Colon; OpenBracket; String "title"; Colon;
+   String "example glossary"; Comma; String "GlossDiv"; Colon; OpenBracket;
+   String "title"; Colon; String "S"; Comma; String "GlossList"; Colon;
+   OpenBracket; String "GlossEntry"; Colon; OpenBracket; String "ID"; Colon;
+   String "SGML"; Comma; String "SortAs"; Colon; String "SGML"; Comma;
+   String "GlossTerm"; Colon; String "Standard Generalized Markup Language";
+   Comma; String "Acronym"; Colon; String "SGML"; Comma; String "Abbrev";
+   Colon; String "ISO 8879:1986"; Comma; String "GlossDef"; Colon; OpenBracket;
+   String "para"; Colon;
+   String
+     "A meta-markup language, used to create markup languages such as DocBook.";
+   Comma; String "GlossSeeAlso"; Colon; OpenArray; String "GML"; Comma;
+   String "XML"; CloseArray; CloseBracket; Comma; String "GlossSee"; Colon;
+   String "markup"; CloseBracket; CloseBracket; CloseBracket; CloseBracket;
+   CloseBracket]
+</code></pre>
+
+<p>This list of tokens is an intermediate step. From here, we could go in several directions. For my purposes, I wanted to see it as XML. To get there, I created a parser that takes the token list and returns an XElement.</p>
+
+<pre><code class="Haskell  ">let parseToXml source =
+let map = function
+  | Token.Number(n) -&gt; n.ToString()
+  | Token.String(x) -&gt; x
+  | v -&gt; failwith "Syntax Error, unrecognized token in map()"
+
+let rec parseValue (acc:XElement) = function
+  | OpenBracket :: t -&gt;
+    let newElement, t' = parseElement acc t
+    newElement, t'
+  | OpenArray :: t -&gt;
+    let name = acc.Name.LocalName
+    if name.EndsWith("ies") &amp;&amp; name.Length &gt; 3 then
+      let childName = name.Substring(0, name.Length - 3) + "y"
+      let newListElement, t' = parseArray childName acc t
+      newListElement, t'
+    elif name.EndsWith("s") &amp;&amp; name.Length &gt; 1 then
+      let childName = name.Substring(0, name.Length - 1)
+      let newListElement, t' = parseArray childName acc t
+      newListElement, t'
+    else
+      let childName = acc.Name.LocalName
+      acc.Name &lt;- XName.Get(childName + "s")
+      let newListElement, t' = parseArray childName acc t
+      newListElement, t'
+  | h :: t -&gt;
+    acc.Value &lt;- map(h)
+    acc, t
+  | _ -&gt; failwith "bad value"
+
+and parseArray name acc = function
+  | Comma :: t -&gt; parseArray name acc t
+  | CloseArray :: t -&gt;  acc, t
+  | t -&gt;
+    let newElement = XElement(XName.Get(name))
+    let acc', t' = parseValue newElement t
+    acc.Add(acc')
+    parseArray name acc t'
+
+and parseElement (acc : XElement) = function
+  | Comma :: t -&gt;
+    parseElement acc t
+  | Token.String(n) :: Colon :: t -&gt;
+    let newElement = XElement(XName.Get(n))
+    let v, t' = parseValue newElement t
+    acc.Add(v)
+    parseElement acc t'
+  | CloseBracket :: t -&gt;
+    acc, t
+  | _ -&gt; failwith "Malformed JSON object"
+
+let root = XElement(XName.Get("root"))
+let tokens = tokenize source
+
+match tokens with
+  | OpenBracket :: t -&gt;
+    let result, t' = parseElement root t
+    result
+  | _ -&gt; failwith "Json did not begin with an object"
+</code></pre>
+
+<p>There is still syntax checking happening in the parse step. The tokenizer would have found illegal tokens, but the parse function will find illegal Json structure. It works in a similar way to the tokenizer, except instead of a raw stream of characters, we’ve got a stream of tokens, which is examined one by one and passed to a set of recursive functions which accumulates the XML, in this case as an XElement.</p>
+
+<p>parseToXml defines inner functions <em>map</em>, <em>parseValue</em>, <em>parseArray</em>, and <em>parseElement.</em> It then gets to work by creating a root XElement, and getting the Token list. Json should start with an OpenBracket token. Anything else and we failwith an error (like C#’s throw). When we find that OpenBracket, the recursion begins with a call to parseElement. The root XElement serves as the accumulator, and the Token list is the “work” to be done.</p>
+
+<p>You should be able to see what’s happening if you’re somewhat comfortable with F#. The parseValue function does some extra work to wrap arrays in nodes where the singularity / plurality of the node makes it read a bit better (in English, most of the time). The other point of interest is that the accumulator is a mutable object in parseToXml, unlike the Token list was in tokenize. At lines 37 and 46, the newly created elements are added to the accumulator using the Add(XElement) method, which mutates the accumulator and keeps using it. This is a departure from “purer” functional techniques, but that’s what’s cool about F#, you can make those departures where it makes sense. In this case, leveraging the XElement class of the .NET framework was worth it. Consuming this class from C# is that much easier and more intuitive.</p>
+
+<p>After all is said and done, this is the XML that is emitted.</p>
+
+<pre><code class="html">&lt;root&gt;
+  &lt;glossary&gt;
+    &lt;title&gt;example glossary&lt;/title&gt;
+    &lt;GlossDiv&gt;
+      &lt;title&gt;S&lt;/title&gt;
+      &lt;GlossList&gt;
+        &lt;GlossEntry&gt;
+          &lt;ID&gt;SGML&lt;/ID&gt;
+          &lt;SortAs&gt;SGML&lt;/SortAs&gt;
+          &lt;GlossTerm&gt;Standard Generalized Markup Language&lt;/GlossTerm&gt;
+          &lt;Acronym&gt;SGML&lt;/Acronym&gt;
+          &lt;Abbrev&gt;ISO 8879:1986&lt;/Abbrev&gt;
+          &lt;GlossDef&gt;
+            &lt;para&gt;A meta-markup language, used to create markup languages such as DocBook.&lt;/para&gt;
+            &lt;GlossSeeAlsos&gt;
+              &lt;GlossSeeAlso&gt;GML&lt;/GlossSeeAlso&gt;
+              &lt;GlossSeeAlso&gt;XML&lt;/GlossSeeAlso&gt;
+            &lt;/GlossSeeAlsos&gt;
+          &lt;/GlossDef&gt;
+          &lt;GlossSee&gt;markup&lt;/GlossSee&gt;
+        &lt;/GlossEntry&gt;
+      &lt;/GlossList&gt;
+    &lt;/GlossDiv&gt;
+  &lt;/glossary&gt;
+&lt;/root&gt;
+</code></pre>
+
+<p>It isn’t the most sophisticated, performant, or I’m sure accurate Json parser out there. But it does the trick for my immediate need, is a good starting point for more sophistication later if needed, and was an excellent exercise in parsing and F#. It was fun to write, and hopefully it stimulates some curiosities. Let me know if you’ve got any questions or comments.</p>
+]]></content>
+  </entry>
+  
+</feed>

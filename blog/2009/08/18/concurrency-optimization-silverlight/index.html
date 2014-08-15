@@ -1,0 +1,573 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Adding Concurrency Optimization in Silverlight 3 - Curried Functions</title>
+  <meta name="author" content="Eric F. Vincent">
+
+  
+  <meta name="description" content="About a week ago Joa Ebert posted Flirting with Silverlight, in which he discussed his experiences with a cool little Lorenz attractor application. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53854937-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Curried Functions</a></h1>
+  
+    <h2>Who Loves to Code.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:efvincent.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Adding Concurrency Optimization in Silverlight 3</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2009-08-18T01:33:22-04:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2009</span></span> <span class='time'>1:33 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>About a week ago Joa Ebert posted <a href="http://blog.joa-ebert.com/2009/08/10/flirting-with-silverlight/">Flirting with Silverlight</a>, in which he discussed his experiences with a cool little Lorenz attractor application. The <em>strange attractor</em> app (which you can check at his <a href="http://blog.joa-ebert.com/2009/08/10/flirting-with-silverlight/">blog</a>) was his way of playing around with the newly released Silverlight 3 (Props to Joa for some very cool work BTW). It calculates a shape in 3D defined by some 300,000 particles, and animates the spinning and rotating of this shape as the user moves the mouse across the display surface.</p>
+
+<p>His point was to relate his first Silverlight experience, and how the non-optimized Silverlight application compared very favorably with the significantly optimized AS3 version. The HTML5 Javascript version was a non-starter, barely able to achieve a few frames per second compared to 30 for AS3 and SL3.</p>
+
+<!-- more -->
+
+
+<p>Joa made <a href="http://blog.joa-ebert.com/2009/08/10/flirting-with-silverlight/">his code</a> available. After looking at the SL3 source code I thought it would be trivial to add some basic concurrency that would <em>significantly</em> increase performance. Here’s a comparison of different implementations:</p>
+
+<ul>
+<li><a href="http://www.joa-ebert.com/swf/index.php?swf=alchemy/Example03">Flash AS3 Version</a>, Optimized</li>
+<li><a href="http://www.joa-ebert.com/files/xpa/attractor/">Original Silverlight Version</a>, naive implementation</li>
+<li><a href="http://efvincent.com/poc/strangeattractor/">Silverlight Version</a>, optimized to leverage Concurrency</li>
+<li><a href="http://mediaerror.com/lab/javascript/strangeattractor">HTML 5 Version</a></li>
+</ul>
+
+
+<p>A point of interest, as far as I know there is <a href="http://blogs.adobe.com/aharui/2008/01/threads_in_actionscript_3.html">no way to do concurrency in Action Script 3</a>. In Joa’s application, the bulk of the hard work is done in a loop that executes every frame:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">void</span> <span class="nf">OnStoryboardCompleted</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">eventArgs</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">targetX</span> <span class="p">+=</span> <span class="p">(</span><span class="n">mouseX</span> <span class="p">-</span> <span class="n">targetX</span><span class="p">)</span> <span class="p">*</span> <span class="m">0.1</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">targetY</span> <span class="p">+=</span> <span class="p">(</span><span class="n">mouseY</span> <span class="p">-</span> <span class="n">targetY</span><span class="p">)</span> <span class="p">*</span> <span class="m">0.1</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">index</span> <span class="p">=</span> <span class="n">MaxScreen</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">maxIndex</span> <span class="p">=</span> <span class="n">MaxScreen</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(--</span><span class="n">index</span> <span class="p">&gt;</span> <span class="p">-</span><span class="m">1</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">bitmap</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="n">x000000</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">particle</span> <span class="p">=</span> <span class="n">particles</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">matrix</span> <span class="p">=</span> <span class="n">Matrix4x4</span><span class="p">.</span><span class="n">RotationY</span><span class="p">(</span><span class="n">targetX</span> <span class="p">*</span> <span class="m">0.05</span><span class="p">)</span> <span class="p">*</span> <span class="n">Matrix4x4</span><span class="p">.</span><span class="n">RotationX</span><span class="p">(</span><span class="n">targetY</span> <span class="p">*</span> <span class="m">0.05</span><span class="p">)</span> <span class="p">*</span> <span class="n">translationMatrix</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">cx</span> <span class="p">=</span> <span class="m">275.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">cy</span> <span class="p">=</span> <span class="m">200.0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">w</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">xi</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">yi</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">x</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">y</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">z</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pz</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="k">null</span> <span class="p">!=</span> <span class="n">particle</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">x</span> <span class="p">=</span> <span class="n">particle</span><span class="p">.</span><span class="n">X</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">y</span> <span class="p">=</span> <span class="n">particle</span><span class="p">.</span><span class="n">Y</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">z</span> <span class="p">=</span> <span class="n">particle</span><span class="p">.</span><span class="n">Z</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">pz</span> <span class="p">=</span> <span class="n">focalLength</span> <span class="p">+</span> <span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I02</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I12</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I22</span> <span class="p">+</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I32</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="m">0.0</span> <span class="p">&lt;</span> <span class="n">pz</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">xi</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span> <span class="p">(</span> <span class="n">w</span> <span class="p">=</span> <span class="n">focalLength</span> <span class="p">/</span> <span class="n">pz</span> <span class="p">)</span> <span class="p">*</span> <span class="p">(</span> <span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I00</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I10</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I20</span> <span class="p">)</span> <span class="p">+</span> <span class="n">cx</span> <span class="p">);</span>
+</span><span class='line'>            <span class="n">yi</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span> <span class="n">w</span> <span class="p">*</span> <span class="p">(</span> <span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I01</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I11</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I21</span> <span class="p">)</span> <span class="p">+</span> <span class="n">cy</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">index</span> <span class="p">=</span> <span class="n">xi</span> <span class="p">+</span> <span class="n">yi</span> <span class="p">*</span> <span class="n">ScreenWidth</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="p">&gt;</span> <span class="p">-</span><span class="m">1</span> <span class="p">&amp;&amp;</span> <span class="n">index</span> <span class="p">&lt;</span> <span class="n">maxIndex</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="kt">var</span> <span class="n">color</span> <span class="p">=</span> <span class="n">bitmap</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">+</span> <span class="m">0</span><span class="n">x202020</span><span class="p">;</span>
+</span><span class='line'>                <span class="n">bitmap</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="n">color</span> <span class="p">&gt;</span> <span class="m">0</span><span class="n">xffffff</span> <span class="p">?</span> <span class="m">0</span><span class="n">xffffff</span> <span class="p">:</span> <span class="n">color</span><span class="p">;</span>
+</span><span class='line'>           <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">particle</span> <span class="p">=</span> <span class="n">particle</span><span class="p">.</span><span class="n">Next</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bitmap</span><span class="p">.</span><span class="n">Invalidate</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">storyboard</span><span class="p">.</span><span class="n">Begin</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>What he’s doing here is writing pixels into a bitmap. At line 9, he sets all the pixels to zero (black), erasing the previous frame. At line 23 he starts a loop that will calculate each pixel that should be turned on for the upcoming frame. In both these cases he’s dealing with a one dimensional array of pixels. This is the perfect case for data parallelism. The work of setting pixels can be divided between processors.</p>
+
+<p>In general, concurrency is not a simple technique to implement correctly. The number and type of problems that one can run into are <strong>way</strong> beyond the scope of anything short of a very thick book. But this perhaps the simplest case; simple <em>static composition data parallelism</em>. It’s static because you can pre-assign the amount of work each thread will do. It’s data parallelism because each thread will be doing the same kind of work (calculating and flipping pixels), as opposed to a solution where one thread does one thing (like talk on the network) while another thread does something else (like shred xml files).</p>
+
+<p>We get this done by building a function that behaves like a <code>For()</code> loop, but executes the body in parallel between several threads. If you’ve played with the recently released Visual Studio 2010 beta that has the .NET 4.0 framework, you’ll recognize this function which is in the next version of the framework (but in a far more sophisticated and powerful form).</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">void</span> <span class="nf">ParallelFor</span><span class="p">(</span><span class="kt">int</span> <span class="n">lo</span><span class="p">,</span> <span class="kt">int</span> <span class="n">hi</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="n">body</span><span class="p">,</span> <span class="kt">int</span> <span class="n">p</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">chunk</span> <span class="p">=</span> <span class="p">(</span><span class="n">hi</span> <span class="p">-</span> <span class="n">lo</span><span class="p">)</span> <span class="p">/</span> <span class="n">p</span><span class="p">;</span>      <span class="c1">// Iterations per thread</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">AutoResetEvent</span><span class="p">[]</span> <span class="n">latch</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AutoResetEvent</span><span class="p">[</span><span class="n">p</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">p</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">latch</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AutoResetEvent</span><span class="p">(</span><span class="k">false</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Schedule the events to run in parallel</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">p</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">ThreadPool</span><span class="p">.</span><span class="n">QueueUserWorkItem</span><span class="p">((</span><span class="n">ob</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">pid</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">ob</span><span class="p">;</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">start</span> <span class="p">=</span> <span class="n">lo</span> <span class="p">+</span> <span class="n">pid</span> <span class="p">*</span> <span class="n">chunk</span><span class="p">;</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">end</span> <span class="p">=</span> <span class="n">pid</span> <span class="p">==</span> <span class="n">p</span> <span class="p">-</span> <span class="m">1</span> <span class="p">?</span> <span class="n">hi</span> <span class="p">:</span> <span class="n">start</span> <span class="p">+</span> <span class="n">chunk</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="p">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">j</span> <span class="p">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">j</span><span class="p">++)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">body</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="n">latch</span><span class="p">[</span><span class="n">pid</span><span class="p">].</span><span class="n">Set</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">},</span> <span class="n">i</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">WaitHandle</span><span class="p">.</span><span class="n">WaitAll</span><span class="p">(</span><span class="n">latch</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>ParallelFor() takes lo and hi values, an <code>Action&lt;int&gt;</code>, and the degree of desired parallelism. The <code>Action&lt;int&gt;</code>is a delegate, which is like a pointer to a function. In this case, it’s a pointer to a function that has a single int parameter, and returns void. This function is the work that happens every iteration. Silverlight, .NET, and C# make it possible (I think it&rsquo;s easy, but I&rsquo;ve been doing this a while) to use anonymous methods and what amount to functional techniques to make Joa’s code multithreaded.  It may be best to illustrate by example.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">while</span> <span class="p">(--</span><span class="n">index</span> <span class="p">&gt;</span> <span class="p">-</span><span class="m">1</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">bitmap</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="n">x000000</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>Joa’s code above, which initializes the pixels in the bitmap, becomes:</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">ParallelFor</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="n">buffer</span><span class="p">.</span><span class="n">Pixels</span><span class="p">.</span><span class="n">Length</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">buffer</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="n">x0</span><span class="p">,</span> <span class="n">numComputationThreads</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>The parameters of ParallelFor are zero for where to start the for loop, Pixels.Length for where to end the loop, the lambda <code>function (i) =&gt; buffer.Pixels[i] = 0x0</code>, and the number of threads to use to do the work. The lambda function is anonymous (i.e. we don’t have to create a function with a name). The type of “i” is <em>inferred</em> from context to be an int. The body of the lambda (the part after the “=>”), is the work that is done each time through the loop.</p>
+
+<p>This makes the clearing of last frame’s bitmap concurrent. To make the rendering of the next frame concurrent is a bit more invasive, but still not bad. Here’s the concurrent version.</p>
+
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="n">ParallelFor</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="n">particles</span><span class="p">.</span><span class="n">Length</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Particle</span> <span class="n">part</span> <span class="p">=</span> <span class="n">particles</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">x</span> <span class="p">=</span> <span class="n">part</span><span class="p">.</span><span class="n">X</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">y</span> <span class="p">=</span> <span class="n">part</span><span class="p">.</span><span class="n">Y</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">z</span> <span class="p">=</span> <span class="n">part</span><span class="p">.</span><span class="n">Z</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">w</span> <span class="p">=</span> <span class="m">0.0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">xi</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">yi</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pz</span> <span class="p">=</span> <span class="n">focalLength</span> <span class="p">+</span> <span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I02</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I12</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I22</span> <span class="p">+</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I32</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="m">0.0</span> <span class="p">&lt;</span> <span class="n">pz</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">xi</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">w</span> <span class="p">=</span> <span class="n">focalLength</span> <span class="p">/</span> <span class="n">pz</span><span class="p">)</span> <span class="p">*</span> <span class="p">(</span><span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I00</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I10</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I20</span><span class="p">)</span> <span class="p">+</span> <span class="n">cx</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">yi</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">w</span> <span class="p">*</span> <span class="p">(</span><span class="n">x</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I01</span> <span class="p">+</span> <span class="n">y</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I11</span> <span class="p">+</span> <span class="n">z</span> <span class="p">*</span> <span class="n">matrix</span><span class="p">.</span><span class="n">I21</span><span class="p">)</span> <span class="p">+</span> <span class="n">cy</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">index</span> <span class="p">=</span> <span class="n">xi</span> <span class="p">+</span> <span class="n">yi</span> <span class="p">*</span> <span class="n">ScreenWidth</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="p">&gt;</span> <span class="p">-</span><span class="m">1</span> <span class="p">&amp;&amp;</span> <span class="n">index</span> <span class="p">&lt;</span> <span class="n">maxIndex</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">color</span> <span class="p">=</span> <span class="n">buffer</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">+</span> <span class="m">0</span><span class="n">x202020</span><span class="p">;</span>
+</span><span class='line'>            <span class="n">buffer</span><span class="p">.</span><span class="n">Pixels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="n">color</span> <span class="p">&gt;</span> <span class="m">0</span><span class="n">xffffff</span> <span class="p">?</span> <span class="m">0</span><span class="n">xffffff</span> <span class="p">:</span> <span class="n">color</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">},</span> <span class="n">numComputationThreads</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">buffer</span><span class="p">.</span><span class="n">Invalidate</span><span class="p">();</span>
+</span><span class='line'><span class="n">lastRender</span> <span class="p">=</span> <span class="n">elapsed</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+
+<p>There are a few changes that I made to make the optimization a bit easier. Joa used a linked list of particles, I captured an array, just because it was a bit easier to make concurrent. But the significant difference is the body of Joa’s loop is now in an anonymous function. Values that will change in the body of the loop are now defined in the loop (x,y,z, etc). This is because if the loop used the variables defined outside the lambda, then the different threads would try to use the same variables as one another, which is obviously a problem. Other than that, the code is pretty much the same.</p>
+
+<p>So how much of an improvement is there? Yea, a lot. I put a frame counter on Joa’s original code and on my MBP dual Core Duo 2.4Ghz 4Gig ram running Windows 7 release, it was getting about 30 frames per second. On OS X it was about the same. With the concurrency, and set to use 4 threads, it got up to 45 fps. On my quad core Dell M6400 Core 2 Exreme Q9300 at 2.54 Ghz with 8gig ram, it went up to 65 fps. If found it was best to use more threads then you have cores. So 4 threads was good on the dual core, 8 on the quad core.</p>
+
+<p>Of course, this means the app will absolutely peg the processor, which is good if you want max speed. But you can also throttle the frame rate back, say hold it at 30, and use less processor to get the same fps as the original.</p>
+
+<p>Silverlight 3 has caused a bit of a splash in the RIA community if the Twitter chatter is any indication. There is some venomous talk out there; you know the such and such tech sucks, such and such tech rules, and of course Microsoft is evil. I choose to stay out of that fray, perhaps it’s hitting 40 that did it. I don’t care to argue with Fanbois. I will say that the the community will discover that the .NET framework and C# (even VB.NET) make for a serious development platform that will benefit the community at large. It’s a very good time to be a developer!</p>
+
+<p>Here’s a link to a zip file containing my version of the project: <a href="https://skydrive.live.com/?cid=db16741b8ce498b0#">Strange Attractor Project</a></p>
+
+<p>Would you like to see the concepts in this post expanded? Want to know more about concurrency, functional patterns, generics? Leave me a note in the comments or send me a Twitter reply at @efvincent. Oh, and thanks for reading!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">EFVincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2009-08-18T01:33:22-04:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2009</span></span> <span class='time'>1:33 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c-number/'>c#</a>, <a class='category' href='/blog/categories/concurrency/'>concurrency</a>, <a class='category' href='/blog/categories/silverlight/'>silverlight</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2009/08/24/nuts-bolts-delegates-functions-1/" title="Next Post: C# Nuts and Bolts: Delegates and Functions, Part I">C# Nuts and Bolts: Delegates and Functions, Part I &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/06/24/di-bootstrap/">DI – Constructor Injection, Bootstrapping</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/efvincent">@efvincent</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'efvincent',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/efvincent.0@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Eric F. Vincent -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'curriedfunctions';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight/';
+        var disqus_url = 'http://efvincent.github.io/blog/2009/08/18/concurrency-optimization-silverlight/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
