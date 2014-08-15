@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://efvincent.github.io/sitemap.xml 
