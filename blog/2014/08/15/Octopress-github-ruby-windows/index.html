@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Curried Functions</title>
+  <title>GitHubify(Blog) - Curried Functions</title>
   <meta name="author" content="Eric F. Vincent">
 
   
@@ -19,7 +19,7 @@ the entire site, source code as well as the blog website &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://efvincent.github.io">
+  <link rel="canonical" href="http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Curried Functions" type="application/atom+xml">
@@ -76,15 +76,12 @@ the entire site, source code as well as the blog website &hellip;">
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a></h1>
+      <h1 class="entry-title">GitHubify(Blog)</h1>
     
     
       <p class="meta">
@@ -100,7 +97,7 @@ the entire site, source code as well as the blog website &hellip;">
   </header>
 
 
-  <div class="entry-content"><p>For my shiney new blog I decided to go full hipster and host on GitHub. This means that
+<div class="entry-content"><p>For my shiney new blog I decided to go full hipster and host on GitHub. This means that
 the entire site, source code as well as the blog website itself, can be seen at
 <a href="https://github.com/efvincent/efvincent.github.io">my blog&rsquo;s repository</a>. Of course all of this will be painfully
 uncool by this time next year. But for the time being it&rsquo;s fun and the tech is relevant.</p>
@@ -108,58 +105,129 @@ uncool by this time next year. But for the time being it&rsquo;s fun and the tec
 <p>Dig in if you want to see the ins and outs of setting all this up on a Windows workstation,
 because Windows is so far out of fashion stuff is starting to not work on it by default. Karma.</p>
 
+<!--more -->
+
+
+<h2>Static Site Generation</h2>
+
+<p>The way GitHub hosted web sites work is that the entire web site is pure static HTML,
+JavaScript, and CSS. If you work in the industry you realize that all the web site
+frameworks (server side) like JSP, ASP.NET, Rails, PHP, etc. all <em>generate</em> pages on
+the fly as the requests come in. This requires a server be running somewhere that can
+run .NET, Java, Ruby, or whatever.</p>
+
+<p>A static site everything is pre-generated, so any server that can respond to requests
+by serving up a file can host a static site. But no one want&rsquo;s to hand craft HTML pages
+for every blog post. So what you have is a generator; some kind of program that can take
+blog posts written in plain text and <strong>poof!</strong> Generate a static website.</p>
+
+<p>The basic idea is that you have a <em>source</em> directory that has your blog posts written
+in (typically) <a href="https://en.wikipedia.org/wiki/Markdown">markdown</a>, CSS, templates for HTML,
+and the Ruby / JavaScript / whatever that the generator is written in.</p>
+
+<p>There&rsquo;s typically a command line interface; so you issue the proper command the
+generator takes your markdown and creates a complete, static web site.</p>
+
+<h2>GitHub</h2>
+
+<p>That&rsquo;s where <a href="www.github.com">GitHub</a> comes in. If you don&rsquo;t know what GitHub is, or
+if you&rsquo;re completely lost at this point, then you probably need to hit up this
+<a href="https://www.youtube.com/watch?v=oHg5SJYRHA0">everything you need to know to become a modern developer</a>
+tutorial.</p>
+
+<p>Think about it for two seconds, it makes perfect sense. GitHub hosts files in a repository and is a web site.
+So if you put a static web site&rsquo;s worth of files <em>in a repository</em>, and GitHub does a tiny bit of magic, it
+can serve those web pages up. And that&rsquo;s all a GitHub hosted static site is. You write posts in
+markdown, you use a generator to create a static site, and you check it into GitHub.</p>
+
+<h2>OctoPress</h2>
+
+<p>I admittedly don&rsquo;t have a ton of experience with static site generators. I played with
+a couple before committing to <a href="www.octopress.org">Octopress</a>. At first I wanted to
+use a <a href="http://nodejs.org">Node.js</a> based static site generator. I googled around a bit
+and ended up playing with <a href="https://github.com/jnordberg/wintersmith">Wintersmith</a> for
+a night. It worked, but GitHub makes it easiest to use a Ruby based generator called <a href="http://jekyllrb.com">Jekyll</a>.
+A bit more poking around and I ended up with <a href="www.octopress.org">Octopress</a>, which is
+built on top of Jekyll, offers additional features, and incredibly well written, well
+documented, and easy to use.</p>
+
+<p>When you go to their site you&rsquo;ll get walked through the installation step by step,
+and there are some nice Ruby build tools available to get things moving, including
+configuring your new Octopress generator to work with GitHub web sites. <strong>Highly recommended</strong></p>
+
+<h2>Ruby</h2>
+
+<p>Ok so <a href="https://www.youtube.com/watch?v=gBkDvqIGSaE">Ruby hates Windows</a>. It might be passive,
+but the ill feelings are there. Which is fine, everyone can&rsquo;t love everyone, and Microsoft
+has kinda earned it by being a dick until very recently. But whatever, I&rsquo;m not with starting
+flame war. It happens that I still use Windows for all kinds of reasons, so I needed to
+get Ruby on my workstation.</p>
+
+<p>Actually I had installed Ruby using <a href="http://chocolatey.org/">Chocolately</a> because I
+love playing with all the languages, but to run Jekyll you&rsquo;ll need the
+<a href="http://rubyinstaller.org/downloads/">Ruby Development Kit</a>. The RDK is platform
+specific, and is needed to build <em>gems</em> (Ruby packages) that are platform specific,
+which Jekyll either is or depends on indirectly (I didn&rsquo;t check).</p>
+
+<p>There are <a href="https://github.com/oneclick/rubyinstaller/wiki/Development-Kit">very clear instructions</a>
+that you can follow for getting this set up. Once that&rsquo;s done you can play along with
+the <a href="www.octopress.org">Octopress</a> setup instructions, which are great. Just follow the
+track that has you deploy to GitHub.</p>
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/08/15/Octopress-github-ruby-windows/">Read on &rarr;</a>
-    </footer>
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Eric F. Vincent</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-08-15T12:00:11-04:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a>, <a class='category' href='/blog/categories/windows/'>windows</a>
+  
+</span>
+
+
+    </p>
     
-      <h1 class="entry-title"><a href="/blog/2014/08/15/abandonment-issues/">Abandonment Issues</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-08-15T11:52:11-04:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>11:52 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;ve moved my blog from WordPress on my own personal site to GitHub, because &hellip; GitHub of course. <em>No One</em> is going
-to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it&rsquo;s time
-for a fresh start.</p>
-
-<p>Expect posts on JavaScript and front end development for a little while. After a career spent designing relational
-databases for finance, insurance and other LOB domains, I&rsquo;ve been working on SPA style front end enterprise applications for
-a couple of years. And it&rsquo;s fun. I may actually have a couple of interesting things to say. We&rsquo;ll see.</p>
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows/" data-via="efvincent" data-counturl="http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/08/15/abandonment-issues/" title="Previous Post: Abandonment Issues">&laquo; Abandonment Issues</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+  </section>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
@@ -222,6 +290,7 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -236,7 +305,10 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
       var disqus_shortname = 'efvincent';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows/';
+        var disqus_url = 'http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Curried Functions]]></title>
-  <link href="http://efvincent.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Windows | Curried Functions]]></title>
+  <link href="http://efvincent.github.io/blog/categories/windows/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
   <updated>2014-08-15T13:13:53-04:00</updated>
   <id>http://efvincent.github.io/</id>
@@ -94,21 +94,6 @@ which Jekyll either is or depends on indirectly (I didn&rsquo;t check).</p>
 that you can follow for getting this set up. Once that&rsquo;s done you can play along with
 the <a href="www.octopress.org">Octopress</a> setup instructions, which are great. Just follow the
 track that has you deploy to GitHub.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Abandonment Issues]]></title>
-    <link href="http://efvincent.github.io/blog/2014/08/15/abandonment-issues/"/>
-    <updated>2014-08-15T11:52:11-04:00</updated>
-    <id>http://efvincent.github.io/blog/2014/08/15/abandonment-issues</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve moved my blog from WordPress on my own personal site to GitHub, because &hellip; GitHub of course. <em>No One</em> is going
-to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it&rsquo;s time
-for a fresh start.</p>
-
-<p>Expect posts on JavaScript and front end development for a little while. After a career spent designing relational
-databases for finance, insurance and other LOB domains, I&rsquo;ve been working on SPA style front end enterprise applications for
-a couple of years. And it&rsquo;s fun. I may actually have a couple of interesting things to say. We&rsquo;ll see.</p>
 ]]></content>
   </entry>
   
