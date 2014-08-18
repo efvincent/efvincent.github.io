@@ -43,7 +43,7 @@ I’ve avoided posting about F# to date, even though I love “playing” with i
 Most everyone knows what Json is by now. It’s just a tad more horrifying in real life as the supernatural killer from the Friday the 13th movies with whom it homophonetically shares its name. It’s a text format for representing data that can be evaluated in that wonderfully fast and lose language of the web, JavaScript, resulting in actual JavaScript objects. Read about it from the [experts here](http://json.org). Here’s an example of some awesome [Json](http://json.org):
 
 
-``` json
+~~~ json
 {
     "glossary": {
         "title": "example glossary",
@@ -66,7 +66,7 @@ Most everyone knows what Json is by now. It’s just a tad more horrifying in re
         }
     }
 }
-```
+~~~
 
 
 
@@ -88,14 +88,14 @@ First thing we want to look at is the Token type, which is a discriminated union
 
 
 
-``` Haskell
+~~~ruby
 type Token =
   | OpenBracket | CloseBracket
   | OpenArray | CloseArray
   | Colon | Comma
   | String of string
   | Number of string
-```
+~~~
 
 
 
@@ -105,7 +105,7 @@ For this simple parser, the tokens are as above, open and close bracket and squa
 
 
 
-``` Haskell
+~~~ruby
 let tokenize source =
 
   let rec parseString acc = function
@@ -146,7 +146,7 @@ let tokenize source =
     | _ -> failwith "Tokinzation error"
 
   tokenize' [] source
-```
+~~~
 
 
 
@@ -174,13 +174,13 @@ We don’t see the char list explicitly because of the use of the _function_ key
 
 
 
-``` Haskell
+~~~ruby
 let rec tokenize' acc sourceChars =
   match sourceChars with
   | w :: t when Char.IsWhiteSpace(w) -> tokenize' acc t   // skip whitespace
   | '{' :: t -> tokenize' (OpenBracket :: acc) t
   | '}' :: t -> tokenize' (CloseBracket :: acc) t
-```
+~~~
 
 
 
@@ -214,7 +214,7 @@ Lastly, line 37 handles the case where we run out of source characters. The Toke
 
 
 
-``` Haskell
+~~~ruby
 > let tk = tokenize source;;
 
 val tk : Token list =
@@ -233,11 +233,11 @@ val tk : Token list =
    String "XML"; CloseArray; CloseBracket; Comma; String "GlossSee"; Colon;
    String "markup"; CloseBracket; CloseBracket; CloseBracket; CloseBracket;
    CloseBracket]
-```
+~~~
 
 This list of tokens is an intermediate step. From here, we could go in several directions. For my purposes, I wanted to see it as XML. To get there, I created a parser that takes the token list and returns an XElement.
 
-``` Haskell  
+~~~ruby  
 let parseToXml source =
 let map = function
   | Token.Number(n) -> n.ToString()
@@ -297,7 +297,8 @@ match tokens with
     let result, t' = parseElement root t
     result
   | _ -> failwith "Json did not begin with an object"
-```
+'
+~~~
 
 
 
@@ -325,7 +326,7 @@ After all is said and done, this is the XML that is emitted.
 
 
 
-``` html
+~~~HTML
 <root>
   <glossary>
     <title>example glossary</title>
@@ -351,7 +352,7 @@ After all is said and done, this is the XML that is emitted.
     </GlossDiv>
   </glossary>
 </root>
-```
+~~~
 
 
 

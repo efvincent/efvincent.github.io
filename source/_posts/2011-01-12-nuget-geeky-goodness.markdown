@@ -78,7 +78,7 @@ Now that we’ve got it installed, let’s quickly use EFCodeFirst just to prove
 
 EFCodeFirst allows you to build POCO objects and use them to build a DB. Let’s build a quick model. There are a few examples floating around modeling blog posts and comments, so lets _not_ do that. Let’s do (super simple) prescriptions and medications. It’s on my mind because I’m recovering from knee surgery. This code is entered directly into the Program.cs source file for this example.
 
-``` C#
+~~~java
 public class Prescription {
     public int Id { get; set; }
     public string MedName { get; set; }
@@ -106,7 +106,7 @@ We have a class for a Prescription, and one for a FilledScript (filled prescript
 
 The _MedContext_ class inherits from EF’s DbContext, and pulls the model together. Each DbSet<…> identifies an entity to EF. In this minimal case, that’s all that’s required to define a model using EFCodeFirst. Lets take a look at using it:
 
-``` C#  
+~~~java  
 static void Main(string[] args) {
 
     DbDatabase.SetInitializer(new DropCreateDatabaseAlways<MedContext>());
@@ -169,11 +169,11 @@ All of this was created by convention, and can also be overridden and specified 
 
 Ok, we’ve seen how easy it is to add a package like EFCodeFirst (and how cool EF itself is). NuGet also allows you to remove a package easily. In the Package Manager Console window, issue the command:
 
-``` bash
+~~~
 PM> Uninstall-Package EFCodeFirst
 Successfully removed 'EFCodeFirst 0.8' from ConsoleApplication2
 Successfully uninstalled 'EFCodeFirst 0.8'
-```
+~~~
 
 NuGet will remove all traces of the package from your project. For EFCodeFirst there’s not much to remove. But other packages are far more complicated, even pulling in prerequisite packages, and modifying the web or app.config. NuGet undoes all these changes when a package is removed.
 

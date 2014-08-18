@@ -38,7 +38,7 @@ The example uses a provider pattern – all the data access will go through a da
 
 Here’s the base level example program with no consideration for dependency injection:
 
-``` C#
+~~~java
 class Program {
     static void Main(string[] args) {
 
@@ -100,7 +100,7 @@ public class Employee {
     public string FName { get; set; }
     public string LName { get; set; }
 }
-```
+~~~
 
 In Main() we new up the data access layer, create a new employee, and add it to our store using the data access layer. At line 21 we ask the data access layer to retrieve the employee record for the currently logged in user. Looks pretty typical, so how can IoC help? Let’s look at the coupling here – what classes are dependent on what other classes?
 
@@ -120,7 +120,7 @@ In this version, we’ve factored out an interface called IDataProvider, and one
 
 Coding to an interface also allows us to radically change the behavior of the service without having to alter its dependencies. If we move to a ASP.NET environment for example, we won’t want to use the current Windows Identity, we may want to use user information from the http context.
 
-``` C#
+~~~java
 // Interface defining an identity service
 public interface IIdentService {
     string GetCurrentUserName();
@@ -168,23 +168,23 @@ public class DevDataProvider : IDataProvider {
         return EmployeeStore.AsQueryable();
     }
 }
-```
+~~~
 
 We’re part of the way to where we need to be. Altering DevDataProvider to depend on the IIdentService interface frees it from a hard dependency on a particular identity implementation. The downside is we’ve made creation of the DevDataProvider a bit more complex, as we need to supply the new instance with an IIdentityService instance.
 
-```C#
+~~~C#
 // Create a new ident service, required for the DAL
 IIdentService identSvc = new WindowsIdentService();
 
 // Create a new DAL
 IDataProvider dal = new DevDataProvider(identSvc);
-```
+~~~
 
 The DevDataProvider now takes a constructor parameter of type IIdentService. This is where the _injection_ in dependency injection comes from. DevDataProvider has a dependency, but instead of hard coding it into the definition of DevDataProvider, we inject it. There are different ways of injecting dependencies, but constructor injection is very popular and works well in many, or even most cases.
 
 The complexity of constructing instances increases when we add a simple logging service which logs information or errors messages.
 
-```C#
+~~~C#
 // Interface defining a logging service
 public interface ILogService {
     void LogInfo(string msg, params object[] args);
@@ -205,11 +205,11 @@ public class ConsoleLogger : ILogService {
             string.Format(msg, args));
     }
 }
-```
+~~~
 
 The ILogService is implemented by a simple console logger. Now both the WindowsIdentService and the DevDataProvider can leverage the logger. They’re both modified to have ILogService instance injected via their respective constructors.
 
-``` C#
+~~~java
 // Implementation of an identity service that returns the current
 // logged in windows username
 public class WindowsIdentService : IIdentService {
@@ -259,11 +259,11 @@ public class DevDataProvider : IDataProvider {
         return EmployeeStore.AsQueryable();
     }
 }
-```
+~~~
 
 Now the services are getting more robust and they're not tightly coupled to each other, they refer only to interfaces of the services they depend on. Main() however, where construction is going on, is getting messy.
 
-``` C#
+~~~java
 static void Main(string[] args) {
 
     // ** Without using an DI Container approach **
@@ -276,11 +276,11 @@ static void Main(string[] args) {
 
     // Create a new DAL
     IDataProvider dal = new DevDataProvider(identSvc, consoleLog);
-```
+~~~
 
 Finally we’re at the point where we can see the benefit of an dependency injection container. One thing about DI containers is that they’re already written. Several mature, robust, open-source DI containers exist. We’ll use AutoFac, because that’s what I’ve been using lately. We include [AutoFac](http://www.nuget.org/List/Packages/Autofac) using [NuGet](http://www.nuget.org).
 
-```
+~~~
 // Create a singleton dependency injection container
 private static readonly IContainer Container = ConfigureContainer();
 
@@ -304,7 +304,7 @@ static void Main(string[] args) {
 
     // ** Using an IoC Container approach **
     var dal = Container.Resolve<IDataProvider>();
-```
+~~~
 
 We’ve created a static instance of IContainer (an AutoFac DI container). When we start the app we configure the container, which fundamentally consists of mapping the interfaces to concrete types that will be injected. For example, line 14 specifies that when there’s a need for an instance of ILogService, we will create an instance of ConsoleLogger. It further says that the DI container should use a SingleInstance() of ConsoleLogger. This has the effect of making ConsoleLogger a singleton. In our example, both the WindowsIdentService and the DevDataProvider will be handed the same instance of ConsoleLogger.
 

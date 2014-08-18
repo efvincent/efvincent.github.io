@@ -37,7 +37,7 @@ tag:
 
 For this post I’ve added a standard MSTest project and a couple of tests for the data provider. The use of dependency injection patterns in the design of this simple example allows us to easily isolate the code under test.
 
-``` C#
+~~~java
 static IContainer afContainer;
 
 [ClassInitialize]
@@ -52,7 +52,7 @@ public static void TestInit(TestContext ctx) {
     bldr.RegisterType<DevDataProvider>().As<IDataProvider>();
     afContainer = bldr.Build();
 }
-```
+~~~
 
 The test class has a static DI container instance, initialized in the class initializer. I’m using [FakeItEasy](http://code.google.com/p/fakeiteasy/) to create a fake IIdentService at line five. Like six tells the FakeItEasy framework what to return when the GetCurrentUserName() method is called on the fake ident service. Having a fixed response makes testing the data provider a piece of cake.
 
@@ -60,7 +60,7 @@ I then register the fake ident service as well as a fake log service. For the lo
 
 Lastly the data provider we want to test is registered with the DI container builder, and then container is built. The tests go on to use the DI container to resolve an instance of the data provider. The DI container will configure the data provider’s dependencies for a log service and an identity service with the fakes we built.
 
-``` C#
+~~~java
 [TestMethod()]
 public void GetCurrentEmployeeTest() {
     var e = new Employee { WindowsUsername = "FAKE-ID" };
@@ -69,7 +69,7 @@ public void GetCurrentEmployeeTest() {
     var result = dal.GetCurrentEmployee();
     Assert.AreEqual(e.WindowsUsername, result.WindowsUsername);
 }
-```
+~~~
 
 This is just a small example of using a DI container in combination with a mock / fake framework for testing. The AutoFac DI container can handle much more complex scenarios than what we’ve thrown at it here. The same is true for the FakeItEasy component. Both of these components are well used, well maintained open source projects. You can find lots of documentation and examples for both. Or you can use any number of other DI containers and mocking frameworks to achieve equivalent results.
 

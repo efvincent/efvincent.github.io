@@ -39,7 +39,7 @@ Combinators are high order functions that compose, combine, or otherwise modify 
 Imagine you’ve got a method that you want to put a stopwatch on. For example, in the following code, you need to see how long it’s taking each download to complete, for debugging information.
 
 
-``` C#
+~~~java
 class Program {
 
     static string url;
@@ -65,7 +65,7 @@ class Program {
         Console.WriteLine("URL: {0} - string length is {1}", url, s.Length);
     }
 }
-```
+~~~
 
 
 
@@ -75,7 +75,7 @@ An ugly solution would be to do this.
 
 
 
-``` C#
+~~~java
 static void Main(string[] args) {
     var sw = new System.Diagnostics.Stopwatch();
 
@@ -97,7 +97,7 @@ static void Main(string[] args) {
     Console.Write("Press any key...");
     Console.ReadKey(true);
 }
-```
+~~~
 
 
 
@@ -107,7 +107,7 @@ Try not to get physically ill. You and I both know there’s plenty of code runn
 
 
 
-``` C#
+~~~java
 static void Main(string[] args) {</p><p>    // Create a delegate, set it to the method of interest</p><p>    Action retrieveFromWeb = RetrieveFromWeb;
 
     url = "http://microsoft.com";
@@ -122,7 +122,7 @@ static void Main(string[] args) {</p><p>    // Create a delegate, set it to the 
     Console.Write("Press any key...");
     Console.ReadKey(true);
 }
-```
+~~~
 
 I’ve added a local variable of type _Action, _and set it equal to the call to the method _RetrieveFromWeb(),_ and now we’re calling that method indirectly. It has the same exact effect, the method gets called three times. Only we’ve added a layer of indirection. We do this all the time in OO programming; for example, you might have a Person object, but rather than coding directly to that object, you create an IPerson interface, and code to that, opening up the possibility of mocking the object, decorating it, etc. Similar thing here. Rather than “binding” the call sites directly to the method, we’re binding to a variable that points to the method.
 
@@ -135,7 +135,7 @@ We’re doing this because now we’ve got a value that can be altered or augmen
 
 
 
-``` C#
+~~~java
 class Combinators {
 
     public static Action Time(Action a) {
@@ -150,18 +150,18 @@ class Combinators {
         };
     }
 }
-```
+~~~
 
 This combinator takes an _Action_ and returns a new action (aka a new function), that has timing included. At line 8 the parameter action is being called, the timing is what’s added. The only change we have to make to the main method is where the delegate is being defined:
 
-``` C#
+~~~java
 Action retrieveFromWeb = Combinators.Time(RetrieveFromWeb);</p>
-```
+~~~
 
 
 The rest of the method stays the same, but now, there’s timing added. This is a super-simple, contrived example, but you should be starting to see what’s possible. Let’s take this a step further. Here’s an example simulating retrieval of information from the database:
 
-``` C#
+~~~java
 static void Main(string[] args) {
 
     Func<string, Guid> lookupUser = LookupUser;
@@ -185,7 +185,7 @@ static Guid LookupUser(string email) {
     Thread.Sleep(rnd.Next(250, 2500));
     return Guid.NewGuid();
 }
-```
+~~~
 
 
 
@@ -195,7 +195,7 @@ Memoization is the idea that a function can remember the results for given param
 
 
 
-``` C#
+~~~java
 public static Func<A, B> Memoize<A, B>(Func<A, B> fn) {
     var dict = new Dictionary<A, B>();
     return a => {
@@ -207,16 +207,16 @@ public static Func<A, B> Memoize<A, B>(Func<A, B> fn) {
         return b;
     };
 }
-```
+~~~
 
 It’s simple, but it demonstrates some very useful and interesting functional programming concepts. First, it’s takes and returns Func<A,B>. This is a delegate with a parameter of type A that returns a type B. This will work for effectively any method with that signature. Next point of interest, a dictionary is created, then the lambda is created and returned. The lambda refers to the dictionary defined outside the lambda. It is said that the dictionary is _captured_ in a _closure_. It’s not important that you remember the terms, but look over the code and see if the concept is clicking for you. This function will return (effectively) a function, the dictionary is _captured_ by that function. Even when the call to Memoize() goes out of scope, the dict variable will still exist in the returned function. Enough talk. We modify the main program just slightly:
 
 
 
 
-``` C#
+~~~java
 Func<string, Guid> lookupUser = Combinators.Memoize(LookupUser);
-```
+~~~
 
 
 
@@ -226,7 +226,7 @@ The Memoize function will create a new function, one that caches results of the 
 
 
 
-``` C#
+~~~java
 public static Func<A, B> Time<A, B>(Func<A, B> fn) {
     return a => {
         var sw = new System.Diagnostics.Stopwatch();
@@ -238,7 +238,7 @@ public static Func<A, B> Time<A, B>(Func<A, B> fn) {
         }
     };
 }
-```
+~~~
 
 
 
@@ -248,11 +248,11 @@ and added it to the definition of lookUpUser in the main function
 
 
 
-``` C#
+~~~java
 Func<string, Guid> lookupUser =
   Combinators.Time(
       Combinators.Memoize<string,Guid>(LookupUser));</p>
-```
+~~~
 
 
 

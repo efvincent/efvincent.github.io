@@ -26,7 +26,7 @@ The idea of dependency injection is that classes are defined such that any depen
 <!-- more -->
 There are several benefits to this particular method of injection; the most obvious is that in a well designed system the dependencies of a class are clearly visible in the constructor. In the [DI 101](http://blog.efvincent.com/practical-di-101) post a data provider was defined like this:
 
-``` C#
+~~~java
 public class DevDataProvider : IDataProvider {
     private readonly IIdentService _identService;
     private readonly ILogService _logSvc;
@@ -41,7 +41,7 @@ public class DevDataProvider : IDataProvider {
 
     // Remaining implementation omitted for brevity
 }
-```
+~~~
 
 The constructor is on line 6. From this constructor we can see that the DevDataProvider has dependencies on an IIdentityService and an ILogService. There should be no other dependencies in the class other than to well known, stable libraries like the [BCL](http://msdn.microsoft.com/en-us/library/hfa3fa08.aspx).
 
@@ -85,7 +85,7 @@ In any kind of a significant application the app’s classes would be in a diffe
 Earlier I mentioned that a benefit of constructor injection is that the dependencies are clearly visible (even _documented_ if you will) in the signature of the constructor. We really don’t want to see lines like this buried in the methods of the classes:
 
 
-``` C#
+~~~java
 // Anti-pattern - don't use DI container except
 // in composition root
 
@@ -94,7 +94,7 @@ var dal = Container.Resolve<IDataAccessService>();
 // And defintely don't do this
 
 var dal = new SqlDataAccessService(connectString);
-```
+~~~
 
 A class that that has these lines buried inside somewhere has hidden dependencies on both the DI container and IDataAccessService (or worse, by using the new keyword directly, on the SqlDataAccessService). These hidden dependencies undermine the benefits of using DI containers at all.
 
