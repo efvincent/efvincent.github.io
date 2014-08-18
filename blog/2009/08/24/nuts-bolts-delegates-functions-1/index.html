@@ -96,71 +96,68 @@
   </header>
 
 
-<div class="entry-content"><p>Two years ago I took up the <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> programming language, purely out of intellectual curiosity. For me, <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> was a gateway drug to functional programming in general. I’ve since spent a good bit of time with <a href="http://msdn.microsoft.com/en-us/fsharp/default.aspx">F#</a> and <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language">Haskell</a>). With the consulting work I do I don’t have the opportunity to use these languages in production, but I have found that using these languages has unlocked a new worlds of problem solving techniques.</p>
+<div class="entry-content"><p>Two years ago I took up the <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> programming language, purely out of intellectual curiosity. For me, <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> was a gateway drug to functional programming in general. I’ve since spent a good bit of time with <a href="http://msdn.microsoft.com/en-us/fsharp/default.aspx">F#</a> and <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. With the consulting work I do I don’t have the opportunity to use these languages in production, but I have found that using these languages has unlocked a new worlds of problem solving techniques.</p>
 
-<p>This series lays down a groundwork of C# understanding upon which we can build a library of modern problem solving techniques, where we take the most useful functional approaches, and see how to apply them to C# programming in .NET. Even if you’ve not any interest in functional programming, this series can be of service helping you understand some of the less obvious aspects of C# programming.</p>
+<p>This series lays down a groundwork of C# understanding upon which we can build a library of modern problem solving techniques, where we take the most useful functional approaches, and see how to apply them to C# programming in .NET. Even if you’ve not any interest in functional programming, this series can be of service helping you understand some of the less obvious aspects of C# programming.
+<!-- more --></p>
 
-<!-- more -->
+<h2 id="delegates">Delegates</h2>
 
+<p>C++ has pointers to functions. C# has delegates. A <a href="http://msdn.microsoft.com/en-us/library/ms173171(VS.80).aspx">delegate</a> is a .NET type that can be thought of as a type safe function pointer. A function pointer is a variable that instead of pointing to or containing data, points to a function. This variable can be used to invoke, or call, the function it is pointing at.</p>
 
-<h2>Delegates</h2>
+<p><em>Type safe</em> refers to the fact that a delegate variable cannot point to just any function, it can only point to a function that matches the delegate’s <em>signature</em>. Signature refers to the parameters and return value of the function. Together, the parameters and return type form a fingerprint for a function which must match that the delegate.</p>
 
-<p>C++ has pointers to functions. C# has delegates. A <a href="http://msdn.microsoft.com/en-us/library/ms173171(VS.80">delegate</a>.aspx) is a .NET type that can be thought of as a type safe function pointer. A function pointer is a variable that instead of pointing to or containing data, points to a function. This variable can be used to invoke, or call, the function it is pointing at.</p>
+<p>In this example, a delegate is created at line 5 called <code>GetStatsDelegate </code>where the signature specifies a single <code>string</code> parameter and an <code>integer</code> return value. Judging from the name, the delegate should point to a function that gets some stats about a string.</p>
 
-<p><em>Type safe</em> refers to the fact that a delegate variable cannot point to just any function, it can only point to a function that matches the delegate&rsquo;s <em>signature</em>. Signature refers to the parameters and return value of the function. Together, the parameters and return type form a fingerprint for a function which must match that the delegate.</p>
-
-<p>In this example, a delegate is created at line 5 called <code>GetStatsDelegate</code>where the signature specifies a single <code>string</code> parameter and an <code>integer</code> return value. Judging from the name, the delegate should point to a function that gets some stats about a string.</p>
-
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">class</span> <span class="nc">Program</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="c1">// define a delegate type for a function that takes a</span>
-</span><span class='line'>    <span class="c1">// string and returns an int</span>
-</span><span class='line'>    <span class="k">delegate</span> <span class="kt">int</span> <span class="nf">GetStatsDelegate</span><span class="p">(</span><span class="kt">string</span> <span class="n">str</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1">// Define a variable of our new delegate type, and</span>
-</span><span class='line'>        <span class="c1">// assign it a value. Any method with the same signature</span>
-</span><span class='line'>        <span class="c1">// can be assigned to this variable.</span>
-</span><span class='line'>        <span class="n">GetStatsDelegate</span> <span class="n">myFunc</span> <span class="p">=</span> <span class="n">GetLengthWithoutSpaces</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1">// Both these print 0</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">myFunc</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">));</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">GetLengthWithoutSpaces</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">// This is a function that we can point to, because it has</span>
-</span><span class='line'>    <span class="c1">// the right signature for our delegate</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">GetLengthWithoutSpaces</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">class</span> <span class="nc">Program</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="c1">// define a delegate type for a function that takes a</span>
+</span><span class="line">    <span class="c1">// string and returns an int</span>
+</span><span class="line">    <span class="k">delegate</span> <span class="kt">int</span> <span class="nf">GetStatsDelegate</span><span class="p">(</span><span class="kt">string</span> <span class="n">str</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">
+</span><span class="line">        <span class="c1">// Define a variable of our new delegate type, and</span>
+</span><span class="line">        <span class="c1">// assign it a value. Any method with the same signature</span>
+</span><span class="line">        <span class="c1">// can be assigned to this variable.</span>
+</span><span class="line">        <span class="n">GetStatsDelegate</span> <span class="n">myFunc</span> <span class="p">=</span> <span class="n">GetLengthWithoutSpaces</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">        <span class="c1">// Both these print 0</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">myFunc</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">));</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">GetLengthWithoutSpaces</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">));</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">    <span class="c1">// This is a function that we can point to, because it has</span>
+</span><span class="line">    <span class="c1">// the right signature for our delegate</span>
+</span><span class="line">    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">GetLengthWithoutSpaces</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">return</span> <span class="m">0</span><span class="p">;</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>At line 12 the delegate we created (which is a type) is used to define a variable, <code>myFunc</code>. We then set <code>myFunc’s</code> value equal to <code>GetLengthWithoutSpaces</code>, which is a function. Lines 15 and 16 call the function, once using the delegate, and once the traditional way.<a href="http://blog.efvincent.com/wp-content/uploads/2009/08/image.png"><img src="http://blog.efvincent.com/wp-content/uploads/2009/08/image_thumb.png" alt="image" /></a></p>
 
@@ -168,42 +165,41 @@
 
 <p>This is good to know. C# treats delegates in a special way. They’ve been granted their own keyword and a special unique way of declaration. The declaration declares a subclass for us, saving us the trouble of building out a subclass ourselves. If we use Reflector to dig into the base class (System.Delegate), we see these properties and fields:</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">// *** From Delegate ***</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// Properties</span>
-</span><span class='line'><span class="k">public</span> <span class="n">MethodInfo</span> <span class="n">Method</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="k">public</span> <span class="kt">object</span> <span class="n">Target</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// Fields</span>
-</span><span class='line'><span class="k">internal</span> <span class="n">MethodBase</span> <span class="n">_methodBase</span><span class="p">;</span>
-</span><span class='line'><span class="k">internal</span> <span class="n">IntPtr</span> <span class="n">_methodPtr</span><span class="p">;</span>
-</span><span class='line'><span class="k">internal</span> <span class="n">IntPtr</span> <span class="n">_methodPtrAux</span><span class="p">;</span>
-</span><span class='line'><span class="k">internal</span> <span class="kt">object</span> <span class="n">_target</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// *** From MulticastDelegate ***</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// Fields</span>
-</span><span class='line'><span class="k">private</span> <span class="n">IntPtr</span> <span class="n">_invocationCount</span><span class="p">;</span>
-</span><span class='line'><span class="k">private</span> <span class="kt">object</span> <span class="n">_invocationList</span><span class="p">;</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="c1">// *** From Delegate ***</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Properties</span>
+</span><span class="line"><span class="k">public</span> <span class="n">MethodInfo</span> <span class="n">Method</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+</span><span class="line"><span class="k">public</span> <span class="kt">object</span> <span class="n">Target</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Fields</span>
+</span><span class="line"><span class="k">internal</span> <span class="n">MethodBase</span> <span class="n">_methodBase</span><span class="p">;</span>
+</span><span class="line"><span class="k">internal</span> <span class="n">IntPtr</span> <span class="n">_methodPtr</span><span class="p">;</span>
+</span><span class="line"><span class="k">internal</span> <span class="n">IntPtr</span> <span class="n">_methodPtrAux</span><span class="p">;</span>
+</span><span class="line"><span class="k">internal</span> <span class="kt">object</span> <span class="n">_target</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// *** From MulticastDelegate ***</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Fields</span>
+</span><span class="line"><span class="k">private</span> <span class="n">IntPtr</span> <span class="n">_invocationCount</span><span class="p">;</span>
+</span><span class="line"><span class="k">private</span> <span class="kt">object</span> <span class="n">_invocationList</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>These fields tell us a few things. An instance of a delegate has reflection information about the method it points to, this is what the <code>MethodInfo</code> public property. The pointer to the function itself is of type <code>IntPtr</code>, which we can think about as a pointer to memory.</p>
 
@@ -278,6 +274,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
       </li>
     
@@ -291,10 +291,6 @@
     
       <li class="post">
         <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
       </li>
     
   </ul>

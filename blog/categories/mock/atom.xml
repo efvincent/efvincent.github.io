@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mock | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/mock/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -20,34 +20,50 @@
     <id>http://efvincent.github.io/blog/2011/05/27/di-mock</id>
     <content type="html"><![CDATA[<p><a href="http://blog.efvincent.com/practical-di-101">My last post</a> provided a brief introduction into dependency injection. To review, the example included a data provider for Employee objects, which included a feature to return the object corresponding to the currently logged in user. In the end the following interfaces were defined:</p>
 
-<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<Employee> as a data store.</p>
+<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<employee> as a data store.</employee></p>
 
 <p><strong>IIdentityService</strong> – describes a service that supplies the <em>current</em> identity. What current is depends on the implementation of course. A concrete WindowsIdentService defines current as the currently logged in Windows user. The TestIdentService implementation always returned the same username, which is useful for testing as we will see.</p>
 
 <p><strong>ILogService</strong> – describes a simple logging service. The ConsoleLogService implementation prints logs to the console.</p>
 
 <!-- more -->
-
-
-<h3>Dependency Injection &amp;Testing</h3>
+<p>### Dependency Injection &amp;Testing</p>
 
 <p>For this post I’ve added a standard MSTest project and a couple of tests for the data provider. The use of dependency injection patterns in the design of this simple example allows us to easily isolate the code under test.</p>
 
-<pre><code class="C#">static IContainer afContainer;
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> IContainer afContainer;
 
 [ClassInitialize]
-public static void TestInit(TestContext ctx) {
+<span class="directive">public</span> <span class="directive">static</span> <span class="type">void</span> TestInit(TestContext ctx) {
     var idSvc = A.Fake&lt;IIdentService&gt;();
     A.CallTo(() =&gt; idSvc.GetCurrentUserName())
-        .Returns("FAKE-ID");
+        .Returns(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span>);
 
-    var bldr = new ContainerBuilder();
+    var bldr = <span class="keyword">new</span> ContainerBuilder();
     bldr.RegisterInstance(idSvc);
     bldr.RegisterInstance(A.Fake&lt;ILogService&gt;());
     bldr.RegisterType&lt;DevDataProvider&gt;().As&lt;IDataProvider&gt;();
     afContainer = bldr.Build();
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>The test class has a static DI container instance, initialized in the class initializer. I’m using <a href="http://code.google.com/p/fakeiteasy/">FakeItEasy</a> to create a fake IIdentService at line five. Like six tells the FakeItEasy framework what to return when the GetCurrentUserName() method is called on the fake ident service. Having a fixed response makes testing the data provider a piece of cake.</p>
 
@@ -55,15 +71,27 @@ public static void TestInit(TestContext ctx) {
 
 <p>Lastly the data provider we want to test is registered with the DI container builder, and then container is built. The tests go on to use the DI container to resolve an instance of the data provider. The DI container will configure the data provider’s dependencies for a log service and an identity service with the fakes we built.</p>
 
-<pre><code class="C#">[TestMethod()]
-public void GetCurrentEmployeeTest() {
-    var e = new Employee { WindowsUsername = "FAKE-ID" };
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+</pre></td>
+  <td class="code"><pre>[TestMethod()]
+<span class="directive">public</span> <span class="type">void</span> GetCurrentEmployeeTest() {
+    var e = <span class="keyword">new</span> Employee { WindowsUsername = <span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span> };
     var dal = afContainer.Resolve&lt;IDataProvider&gt;();
     dal.AddEmployee(e);
     var result = dal.GetCurrentEmployee();
     Assert.AreEqual(e.WindowsUsername, result.WindowsUsername);
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>This is just a small example of using a DI container in combination with a mock / fake framework for testing. The AutoFac DI container can handle much more complex scenarios than what we’ve thrown at it here. The same is true for the FakeItEasy component. Both of these components are well used, well maintained open source projects. You can find lots of documentation and examples for both. Or you can use any number of other DI containers and mocking frameworks to achieve equivalent results.</p>
 

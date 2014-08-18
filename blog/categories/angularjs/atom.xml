@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Angularjs | Curried Functions]]></title>
+  <link href="http://efvincent.github.io/blog/categories/angularjs/atom.xml" rel="self"/>
+  <link href="http://efvincent.github.io/"/>
+  <updated>2014-08-18T13:03:44-04:00</updated>
+  <id>http://efvincent.github.io/</id>
+  <author>
+    <name><![CDATA[Eric F. Vincent]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Debounce as a Directive]]></title>
+    <link href="http://efvincent.github.io/blog/2014/08/18/debounce-as-a-directive/"/>
+    <updated>2014-08-18T01:28:33-04:00</updated>
+    <id>http://efvincent.github.io/blog/2014/08/18/debounce-as-a-directive</id>
+    <content type="html"><![CDATA[<p>Some months ago a co-worker asked if there were a way to buffer the input on a text box
+so that the handler would not be called more than every X milliseconds. His app was doing
+the fairly typical chore of searching through a long list as the user types into a
+search box. Firing a <code>digest</code> (that’s Angular’s re-bind and re-render loop) for each
+keystroke causes a jumpy, jittery refresh storm.</p>
+
+<p>What he was looking for is commonly referred to as to <em>debounce</em> or <em>throttle</em> a
+function. There are many implementations around, but his question was specifically
+about debounce in the context of Angular, preferably as a directive.</p>
+
+<!-- more -->
+
+<p>I found a snippet authored by <a href="http://tommaitland.net">Tom Maitland</a> that does just
+what we need. I tweaked it slightly (also as a <a href="https://gist.github.com/efvincent/9784923">Gist</a>
+and <a href="http://jsfiddle.net/efvincent/vkphp2fa/">JSFiddle</a>):</p>
+
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+<a href="#n26" name="n26">26</a>
+</pre></td>
+  <td class="code"><pre><span class="comment">// Defines the module as &quot;app&quot;, this is not best practice for module</span>
+<span class="comment">// definition or project structure, focus on the directive</span>
+angular.module(<span class="string"><span class="delimiter">'</span><span class="content">app</span><span class="delimiter">'</span></span>, []).directive(<span class="string"><span class="delimiter">'</span><span class="content">tlDebounce</span><span class="delimiter">'</span></span>, <span class="keyword">function</span>(<span class="predefined">$timeout</span>) {
+  <span class="keyword">return</span> {
+    <span class="key">restrict</span>: <span class="string"><span class="delimiter">'</span><span class="content">A</span><span class="delimiter">'</span></span>,
+    <span class="key">require</span>: <span class="string"><span class="delimiter">'</span><span class="content">ngModel</span><span class="delimiter">'</span></span>,
+    <span class="key">priority</span>: <span class="integer">99</span>,
+    <span class="function">link</span>: <span class="keyword">function</span>(scope, elm, attr, ngModelCtrl) {
+      <span class="keyword">if</span> (attr.type === <span class="string"><span class="delimiter">'</span><span class="content">radio</span><span class="delimiter">'</span></span> || attr.type === <span class="string"><span class="delimiter">'</span><span class="content">checkbox</span><span class="delimiter">'</span></span>) <span class="keyword">return</span>;
+
+      elm.unbind(<span class="string"><span class="delimiter">'</span><span class="content">input</span><span class="delimiter">'</span></span>);
+
+      <span class="keyword">var</span> debounce;
+      elm.bind(<span class="string"><span class="delimiter">'</span><span class="content">input</span><span class="delimiter">'</span></span>, <span class="keyword">function</span>() {
+        <span class="predefined">$timeout</span>.cancel(debounce);
+          ngModelCtrl.<span class="predefined">$setViewValue</span>(elm.val());
+        }, attr.tlDebounce || <span class="integer">1000</span>);
+      });
+      elm.bind(<span class="string"><span class="delimiter">'</span><span class="content">blur</span><span class="delimiter">'</span></span>, <span class="keyword">function</span>() {
+        scope.<span class="predefined">$apply</span>(<span class="keyword">function</span>() {
+          ngModelCtrl.<span class="predefined">$setViewValue</span>(elm.val());
+        });
+      });
+    }
+  }
+});
+</pre></td>
+</tr></table>
+</div>
+
+<h2 id="examining-the-directive">Examining the directive</h2>
+
+<p>The directive starts at line 3 by defining a module and calling the <code>directive</code> function
+which causes Angular to register a directive in that module. This directive is called <code>tlBounce</code>.
+To define a directive we pass a function and our function returns a directive definition object.</p>
+
+<h3 id="injecting-angulars-timer-service">Injecting Angular’s Timer service</h3>
+
+<p>The debounce directive will use a timer to assure that when attached to a text box, the underlying
+model will only be updated every X milliseconds. We’ll see the algorithm in a bit.</p>
+
+<p>When Angular needs an instance of our directive, it will call the function we’ve provided. Angular
+will inspect the function and detect that it has a dependency; to call the function Angular must
+provide, or <em>inject</em> something called <code>$timeout</code>, which is one of Angular’s services. Angular offers
+many <em>services</em> to you as the application developer to use in creating a directive (or factory,
+filter, controller, or the other Angular things). These services are objects or functions provided by the framework.</p>
+
+<p>The tip-off that <code>$timeout</code> is a service is the leading dollar sign. Angular will use its
+<a href="https://docs.angularjs.org/api/auto/service/$injector#!">Injector</a> service to find a <code>$timeout</code> and pass it
+to us. We’ll then use the <code>$timeout</code> in our <em>link function</em>.</p>
+
+<h3 id="the-link-function">The link function</h3>
+
+<p>Without getting into the guts of directive development, suffice it to say that in most
+cases when writing a directive you’ll want to focus on the <code>link</code> function. For more information
+on the link function, there’s the <a href="http://angularjs.org/">Angular Docs</a>, and another good source of information is
+<a href="http://www.angularjshub.com/examples/customdirectives/compilelinkfunctions/">AngularJS Hub</a>.</p>
+
+<p>The <code>link</code> function sets up each instance of the directive. You supply the function that can have
+up to four parameters. <code>link: function(scope, elm, attr, ngModelCtrl)</code>.</p>
+
+<h4 id="link-function-parameters">Link function parameters</h4>
+
+<p>The first is the directive’s local scope, which is usually used like you use scope in a controller
+to maintain and bind to the internal state of the directive. We’ll see how <code>scope</code> is used here in a second.</p>
+
+<p>Second is the <code>elm</code> or <em>element</em> parameter. This is the DOM element that the directive to which the
+directive is attached. For debounce, the directive is attached to an input, usually a text box. You can do the
+usual DOM-stuff to the element, attach event handlers, change content, add children, etc. AAMOF you actually
+have an Angular wrapper around the element, so you get some additional JQuery like functions on the element.</p>
+
+<p>Third is <code>attr</code>, the attributes. This is a map of the attributes on the element to which our directive is
+attached. In our case, we’re using the <code>attr</code> to detect if we’re attached to a radio button or check box; our
+deBounce doesn’t have a meaning for those controllers, so we bail if we see that we’re attached to one (line 9).</p>
+
+<p>Lastly is the <code>ngModelCtrl</code>, which is the least intuitive. This is a controller requirement of our directive,
+it says that any directive we’re attached to needs to have an <code>ngModelCtrl</code> controller. This sort of limits
+our deBouncer, but the target use case is to put this directive on a text box that’s using AngularJS’s binding.</p>
+
+<h3 id="debounce-algorithm">DeBounce Algorithm</h3>
+
+<p>The strategy is as follows:</p>
+
+<ol>
+  <li>Detach the input handler (line 11) that usually updates the model</li>
+  <li>Bind a new input handler
+    <ol>
+      <li>Cancel any pending debounce timer (line 15)</li>
+      <li>Set up a new debounce timer
+        <ol>
+          <li>It should go off in the time specified by the <code>tl-debounce</code> attribute, or 1,000ms if the attribute is
+ not specified (line 18).</li>
+        </ol>
+      </li>
+      <li>When it goes off, it should tell the model controller <code>ngModelCtrl</code> to set it’s value <code>.$setViewValue(elm.val())</code></li>
+    </ol>
+  </li>
+  <li>Bind a new blur handler, so when th user leaves the field the model is always updated.
+    <ol>
+      <li>Put the call to <code>$setNewValue()</code> inside a <code>scope.apply()</code> so the change causes a digest (Angular rebinds everything).</li>
+    </ol>
+  </li>
+</ol>
+
+<h3 id="the-digest">The Digest</h3>
+<p>One important point - you may be thinking that you could have used the standard JavaScript timer. Why
+use Angular’s <code>$timer</code> service? It’s because Angular needs to know when the model changes so that it
+can perform it’s two way binding / model-view synchronization. By using Angular’s timer, you can be assured
+that Angular will know when the timer goes off and will do all the right Angular binding stuff at that time.</p>
+
+<h3 id="but-eric-youre-wrong-and-oh-so-stupid">But Eric, you’re wrong and oh so stupid!</h3>
+<blockquote>
+  <p>You <strong>could</strong> use the normal timer, because when you call <code>.$setViewValue()</code>
+you’re letting Angular know something needs to change, right? I mean, it starts in a dollar sign,
+so it’s all Angulary, right?  </p>
+</blockquote>
+
+<p>Heh. You’d think so, but you’d be wrong. This is the kind of thing that makes you scratch your head, then waste
+fifteen minutes, then look up the docs, then unleash a stream of profanities. It happens that <code>.$setViewValue()</code> does
+<strong>not</strong> cause a digest, probably because of performance or some other really good reason. Doesn’t make it fun though, and
+it’s the kind of undiscoverable crap that qualifies as a legit complaint about AngularJS. Take your medicine.</p>
+
+<p>So that’s DeBounce - it actually works pretty well for things like text boxes that do searches and stuff like that.
+I use it in production, but there’s no warrentee so YMMV. Have a good one…</p>
+
+<p>-e</p>
+]]></content>
+  </entry>
+  
+</feed>

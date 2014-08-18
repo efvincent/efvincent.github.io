@@ -96,198 +96,191 @@
   </header>
 
 
-<div class="entry-content"><p>The thing with spending time on functional programming is that the typical .NET programmer will not likely be able to write production code in F#, and almost certainly not in Haskell. But what you are able to do is apply a new set of problem solving approaches to your every day work.</p>
-
+<div class="entry-content"><p>The thing with spending time on functional programming is that the typical .NET programmer will not likely be able to write production code in F#, and almost certainly not in Haskell. But what you are able to do is apply a new set of problem solving approaches to your every day work.
 <!-- more -->
+So here’s a simple problem that we see all the time; you’re writing a console application to test a component. Here’s the pseudo code:</p>
 
-
-<p>So here’s a simple problem that we see all the time; you’re writing a console application to test a component. Here’s the pseudo code:</p>
-
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="c1">/// While still processing</span>
-</span><span class='line'><span class="c1">///     Get a string from the user</span>
-</span><span class='line'><span class="c1">///     Process the string</span>
-</span><span class='line'><span class="c1">/// End While</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="c1">/// While still processing</span>
+</span><span class="line"><span class="c1">///     Get a string from the user</span>
+</span><span class="line"><span class="c1">///     Process the string</span>
+</span><span class="line"><span class="c1">/// End While</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>Super duper simple. So here’s a straight forward way to code it:</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">NonReusableLoop</span><span class="p">();</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">NonReusableLoop</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">do</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Enter a web site to process. Press enter to end: &quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>    <span class="c1">// don&#39;t really care about second parameter</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessWebSite</span><span class="p">(</span><span class="kt">string</span> <span class="n">webSite</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">someOtherParameter</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="c1">// Do some fake work</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(!</span><span class="n">webSite</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="s">&quot;http://&quot;</span><span class="p">,</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">&quot;Poorly formed web site name&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Processing web site {0}&quot;</span><span class="p">,</span> <span class="n">webSite</span><span class="p">);</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">rnd</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">.</span><span class="n">Millisecond</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Web site has {0:#,##0} pages!&quot;</span><span class="p">,</span> <span class="n">rnd</span><span class="p">.</span><span class="n">Next</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1000</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">NonReusableLoop</span><span class="p">();</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">NonReusableLoop</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">    <span class="k">do</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Enter a web site to process. Press enter to end: &quot;</span><span class="p">);</span>
+</span><span class="line">        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
+</span><span class="line">        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>    <span class="c1">// don&#39;t really care about second parameter</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessWebSite</span><span class="p">(</span><span class="kt">string</span> <span class="n">webSite</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">someOtherParameter</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="c1">// Do some fake work</span>
+</span><span class="line">    <span class="k">if</span> <span class="p">(!</span><span class="n">webSite</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="s">&quot;http://&quot;</span><span class="p">,</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">&quot;Poorly formed web site name&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Processing web site {0}&quot;</span><span class="p">,</span> <span class="n">webSite</span><span class="p">);</span>
+</span><span class="line">    <span class="kt">var</span> <span class="n">rnd</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">.</span><span class="n">Millisecond</span><span class="p">);</span>
+</span><span class="line">    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Web site has {0:#,##0} pages!&quot;</span><span class="p">,</span> <span class="n">rnd</span><span class="p">.</span><span class="n">Next</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1000</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>So lets say we want to extract something reusable out of this. Lets say we regularly churn up little console apps and we’re tired of writing this over and over again.</p>
 
 <p>There are a couple of approaches that seem obvious you if you’ve got your functional thinking cap on. For example, this first pass looks like a function that does the interesting work (calls ProcessWebSite()) in the middle of a bunch of other stuff (getting user input, looping, checking for the quit condition). Let’s go with that observation:</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">ProcessUserInput</span><span class="p">(</span><span class="s">&quot;Enter a web site url&quot;</span><span class="p">,</span> <span class="n">input</span> <span class="p">=&gt;</span> <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="k">true</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessUserInput</span><span class="p">(</span><span class="kt">string</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">fn</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">do</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;{0}. Press enter to end: &quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">fn</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exception thrown: {0}&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
-</span><span class='line'>                <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Show exception stack? (y/N):&quot;</span><span class="p">);</span>
-</span><span class='line'>                <span class="kt">var</span> <span class="n">exInput</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
-</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">exInput</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">,</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">ToString</span><span class="p">());</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">ProcessUserInput</span><span class="p">(</span><span class="s">&quot;Enter a web site url&quot;</span><span class="p">,</span> <span class="n">input</span> <span class="p">=&gt;</span> <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="k">true</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessUserInput</span><span class="p">(</span><span class="kt">string</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">if</span> <span class="p">(</span><span class="n">fn</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">    <span class="k">do</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;{0}. Press enter to end: &quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">);</span>
+</span><span class="line">        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
+</span><span class="line">        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">            <span class="k">try</span> <span class="p">{</span>
+</span><span class="line">                <span class="n">fn</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class="line">            <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exception thrown: {0}&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+</span><span class="line">                <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Show exception stack? (y/N):&quot;</span><span class="p">);</span>
+</span><span class="line">                <span class="kt">var</span> <span class="n">exInput</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
+</span><span class="line">                <span class="k">if</span> <span class="p">(</span><span class="n">exInput</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">,</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">ToString</span><span class="p">());</span>
+</span><span class="line">                <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-
-<p>Now we’ve got a function that does the collection of the user strings, checking for the quit condition, and even adds some simple error handling to catch any exceptions that the “work” might throw. The parameter is an “Action<string>”. This is the .NET way of describing a function that returns void and has a single string parameter. This is a functional way of looking at the problem, because in functional programming passing functions around and working on functions is a fundamental technique. Getting used to doing this is a powerful tool.</p>
+<p>Now we’ve got a function that does the collection of the user strings, checking for the quit condition, and even adds some simple error handling to catch any exceptions that the “work” might throw. The parameter is an “Action<string>”. This is the .NET way of describing a function that returns void and has a single string parameter. This is a functional way of looking at the problem, because in functional programming passing functions around and working on functions is a fundamental technique. Getting used to doing this is a powerful tool.</string></p>
 
 <p>But there’s a better way of looking at it. What if we think of the strings the user is entering as a set of strings. We end up with something like this:</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">ProcessStrings</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">SetOfUserInput</span><span class="p">(</span><span class="s">&quot;Enter a web site url&quot;</span><span class="p">),</span>
-</span><span class='line'>        <span class="n">str</span> <span class="p">=&gt;</span> <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="k">true</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessStrings</span><span class="p">(</span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">setOfStrings</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">item</span> <span class="k">in</span> <span class="n">setOfStrings</span><span class="p">)</span> <span class="n">fn</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">SetOfUserInput</span><span class="p">(</span><span class="kt">string</span> <span class="n">prompt</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">do</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;{0}. Press enter to end: &quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">yield</span> <span class="k">return</span> <span class="n">input</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">ProcessStrings</span><span class="p">(</span>
+</span><span class="line">        <span class="n">SetOfUserInput</span><span class="p">(</span><span class="s">&quot;Enter a web site url&quot;</span><span class="p">),</span>
+</span><span class="line">        <span class="n">str</span> <span class="p">=&gt;</span> <span class="n">ProcessWebSite</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="k">true</span><span class="p">));</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">ProcessStrings</span><span class="p">(</span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">setOfStrings</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">item</span> <span class="k">in</span> <span class="n">setOfStrings</span><span class="p">)</span> <span class="n">fn</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">SetOfUserInput</span><span class="p">(</span><span class="kt">string</span> <span class="n">prompt</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">    <span class="k">do</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;{0}. Press enter to end: &quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">);</span>
+</span><span class="line">        <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="n">ReadLine</span><span class="p">();</span>
+</span><span class="line">        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">input</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">            <span class="k">yield</span> <span class="k">return</span> <span class="n">input</span><span class="p">;</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-
-<p>Now we’ve got a function that returns a set of strings (IEnumerable<string> is the .NET way of saying a set of strings), and a function that takes a set of strings and applies a function to each member. The yield keyword makes the SetOfUserInput() method into a set. Each time the yield return keyword is hit, the value is passed out to the caller. When the caller attempts to retrieve the next value from the set, control is passed to the line after the yield return. This construct is called a continuation, and it’s a powerful concept.</p>
+<p>Now we’ve got a function that returns a set of strings (IEnumerable<string> is the .NET way of saying a set of strings), and a function that takes a set of strings and applies a function to each member. The yield keyword makes the SetOfUserInput() method into a set. Each time the yield return keyword is hit, the value is passed out to the caller. When the caller attempts to retrieve the next value from the set, control is passed to the line after the yield return. This construct is called a continuation, and it’s a powerful concept.</string></p>
 
 <p>These two simple concepts, that functions can be passed around and worked on, and that you can generate sets of data using continuations, are simple and fundamental to functional programming. But as these examples show you can use these techniques to your advantage in C#, solving real, every day problems.</p>
 </div>
@@ -354,6 +347,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
       </li>
     
@@ -367,10 +364,6 @@
     
       <li class="post">
         <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
       </li>
     
   </ul>

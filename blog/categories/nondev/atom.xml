@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Nondev | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/nondev/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -18,13 +18,13 @@
     <link href="http://efvincent.github.io/blog/2014/08/15/abandonment-issues/"/>
     <updated>2014-08-15T11:52:11-04:00</updated>
     <id>http://efvincent.github.io/blog/2014/08/15/abandonment-issues</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve moved my blog from WordPress on my own personal site to GitHub, because &hellip; GitHub of course. <em>No One</em> is going
-to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it&rsquo;s time
+    <content type="html"><![CDATA[<p>I’ve moved my blog from WordPress on my own personal site to GitHub, because … GitHub of course. <em>No One</em> is going
+to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it’s time
 for a fresh start.</p>
 
 <p>Expect posts on JavaScript and front end development for a little while. After a career spent designing relational
-databases for finance, insurance and other LOB domains, I&rsquo;ve been working on SPA style front end enterprise applications for
-a couple of years. And it&rsquo;s fun. I may actually have a couple of interesting things to say. We&rsquo;ll see.</p>
+databases for finance, insurance and other LOB domains, I’ve been working on SPA style front end enterprise applications for
+a couple of years. And it’s fun. I may actually have a couple of interesting things to say. We’ll see.</p>
 ]]></content>
   </entry>
   

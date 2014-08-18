@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Disassemble | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/disassemble/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -18,45 +18,43 @@
     <link href="http://efvincent.github.io/blog/2009/08/24/nuts-bolts-delegates-functions-1/"/>
     <updated>2009-08-24T23:32:21-04:00</updated>
     <id>http://efvincent.github.io/blog/2009/08/24/nuts-bolts-delegates-functions-1</id>
-    <content type="html"><![CDATA[<p>Two years ago I took up the <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> programming language, purely out of intellectual curiosity. For me, <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> was a gateway drug to functional programming in general. I’ve since spent a good bit of time with <a href="http://msdn.microsoft.com/en-us/fsharp/default.aspx">F#</a> and <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language">Haskell</a>). With the consulting work I do I don’t have the opportunity to use these languages in production, but I have found that using these languages has unlocked a new worlds of problem solving techniques.</p>
+    <content type="html"><![CDATA[<p>Two years ago I took up the <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> programming language, purely out of intellectual curiosity. For me, <a href="http://en.wikipedia.org/wiki/OCaml">OCaml</a> was a gateway drug to functional programming in general. I’ve since spent a good bit of time with <a href="http://msdn.microsoft.com/en-us/fsharp/default.aspx">F#</a> and <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language)">Haskell</a>. With the consulting work I do I don’t have the opportunity to use these languages in production, but I have found that using these languages has unlocked a new worlds of problem solving techniques.</p>
 
-<p>This series lays down a groundwork of C# understanding upon which we can build a library of modern problem solving techniques, where we take the most useful functional approaches, and see how to apply them to C# programming in .NET. Even if you’ve not any interest in functional programming, this series can be of service helping you understand some of the less obvious aspects of C# programming.</p>
+<p>This series lays down a groundwork of C# understanding upon which we can build a library of modern problem solving techniques, where we take the most useful functional approaches, and see how to apply them to C# programming in .NET. Even if you’ve not any interest in functional programming, this series can be of service helping you understand some of the less obvious aspects of C# programming.
+<!-- more --></p>
 
-<!-- more -->
+<h2 id="delegates">Delegates</h2>
 
+<p>C++ has pointers to functions. C# has delegates. A <a href="http://msdn.microsoft.com/en-us/library/ms173171(VS.80).aspx">delegate</a> is a .NET type that can be thought of as a type safe function pointer. A function pointer is a variable that instead of pointing to or containing data, points to a function. This variable can be used to invoke, or call, the function it is pointing at.</p>
 
-<h2>Delegates</h2>
+<p><em>Type safe</em> refers to the fact that a delegate variable cannot point to just any function, it can only point to a function that matches the delegate’s <em>signature</em>. Signature refers to the parameters and return value of the function. Together, the parameters and return type form a fingerprint for a function which must match that the delegate.</p>
 
-<p>C++ has pointers to functions. C# has delegates. A <a href="http://msdn.microsoft.com/en-us/library/ms173171(VS.80">delegate</a>.aspx) is a .NET type that can be thought of as a type safe function pointer. A function pointer is a variable that instead of pointing to or containing data, points to a function. This variable can be used to invoke, or call, the function it is pointing at.</p>
+<p>In this example, a delegate is created at line 5 called <code>GetStatsDelegate </code>where the signature specifies a single <code>string</code> parameter and an <code>integer</code> return value. Judging from the name, the delegate should point to a function that gets some stats about a string.</p>
 
-<p><em>Type safe</em> refers to the fact that a delegate variable cannot point to just any function, it can only point to a function that matches the delegate&rsquo;s <em>signature</em>. Signature refers to the parameters and return value of the function. Together, the parameters and return type form a fingerprint for a function which must match that the delegate.</p>
-
-<p>In this example, a delegate is created at line 5 called <code>GetStatsDelegate</code>where the signature specifies a single <code>string</code> parameter and an <code>integer</code> return value. Judging from the name, the delegate should point to a function that gets some stats about a string.</p>
-
-<pre><code class="C#">class Program
+<p>&#8220;` C#
+class Program
 {
     // define a delegate type for a function that takes a
     // string and returns an int
-    delegate int GetStatsDelegate(string str);
+    delegate int GetStatsDelegate(string str);</p>
 
-    public static void main() {
+<pre><code>public static void main() {
 
-        // Define a variable of our new delegate type, and
-        // assign it a value. Any method with the same signature
-        // can be assigned to this variable.
-        GetStatsDelegate myFunc = GetLengthWithoutSpaces;
+    // Define a variable of our new delegate type, and
+    // assign it a value. Any method with the same signature
+    // can be assigned to this variable.
+    GetStatsDelegate myFunc = GetLengthWithoutSpaces;
 
-        // Both these print 0
-        Console.WriteLine(myFunc("Hello"));
-        Console.WriteLine(GetLengthWithoutSpaces("Hello"));
-    }
-
-    // This is a function that we can point to, because it has
-    // the right signature for our delegate
-    public static int GetLengthWithoutSpaces(string s) {
-        return 0;
-    }
+    // Both these print 0
+    Console.WriteLine(myFunc("Hello"));
+    Console.WriteLine(GetLengthWithoutSpaces("Hello"));
 }
+
+// This is a function that we can point to, because it has
+// the right signature for our delegate
+public static int GetLengthWithoutSpaces(string s) {
+    return 0;
+} } ```
 </code></pre>
 
 <p>At line 12 the delegate we created (which is a type) is used to define a variable, <code>myFunc</code>. We then set <code>myFunc’s</code> value equal to <code>GetLengthWithoutSpaces</code>, which is a function. Lines 15 and 16 call the function, once using the delegate, and once the traditional way.<a href="http://blog.efvincent.com/wp-content/uploads/2009/08/image.png"><img src="http://blog.efvincent.com/wp-content/uploads/2009/08/image_thumb.png" alt="image" /></a></p>
@@ -65,24 +63,25 @@
 
 <p>This is good to know. C# treats delegates in a special way. They’ve been granted their own keyword and a special unique way of declaration. The declaration declares a subclass for us, saving us the trouble of building out a subclass ourselves. If we use Reflector to dig into the base class (System.Delegate), we see these properties and fields:</p>
 
-<pre><code class="C#">// *** From Delegate ***
+<p>&#8220;` C#
+// <em>** From Delegate **</em></p>
 
-// Properties
+<p>// Properties
 public MethodInfo Method { get; }
-public object Target { get; }
+public object Target { get; }</p>
 
-// Fields
+<p>// Fields
 internal MethodBase _methodBase;
 internal IntPtr _methodPtr;
 internal IntPtr _methodPtrAux;
-internal object _target;
+internal object _target;</p>
 
-// *** From MulticastDelegate ***
+<p>// <em>** From MulticastDelegate **</em></p>
 
-// Fields
+<p>// Fields
 private IntPtr _invocationCount;
 private object _invocationList;
-</code></pre>
+&#8220;`</p>
 
 <p>These fields tell us a few things. An instance of a delegate has reflection information about the method it points to, this is what the <code>MethodInfo</code> public property. The pointer to the function itself is of type <code>IntPtr</code>, which we can think about as a pointer to memory.</p>
 

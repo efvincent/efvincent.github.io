@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Porshe | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/porshe/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -22,7 +22,7 @@
 
 <p><a href="http://vimeo.com/14339850">PCA DE CMP August 2010</a> from <a href="http://vimeo.com/efvincent">Eric Vincent</a> on <a href="http://vimeo.com">Vimeo</a>.</p>
 
-<p> <!-- more --></p>
+<p><!-- more --></p>
 
 <p>Some notes about the video and data acquisition, for those interested in the gory, geeky details:</p>
 
@@ -40,7 +40,7 @@
 
 <p>· That data can then be imported into Adobe After Effects. Images of the gauges (drawn from scratch in Adobe Illustrator) are animated into a video overlay using the PLX/Rev data.</p>
 
-<p>· Adobe Premiere then takes the gauges and overlays them on top of the video from the track. There’s some fiddling involved to get the gauge data and video in sync. Premiere then renders the video (20 minutes took 6 hours&hellip; not sure if I’m doing that right).</p>
+<p>· Adobe Premiere then takes the gauges and overlays them on top of the video from the track. There’s some fiddling involved to get the gauge data and video in sync. Premiere then renders the video (20 minutes took 6 hours… not sure if I’m doing that right).</p>
 
 <p>· That rendered video is HD and is pretty big, so I used Microsoft Expression Encoder (Adobe has an encoder too) to re-encode the video into a smaller MP4 format that Vimeo wanted for uploading.</p>
 ]]></content>

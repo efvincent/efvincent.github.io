@@ -98,49 +98,50 @@
 
 <div class="entry-content"><p><a href="http://blog.efvincent.com/practical-di-101">My last post</a> provided a brief introduction into dependency injection. To review, the example included a data provider for Employee objects, which included a feature to return the object corresponding to the currently logged in user. In the end the following interfaces were defined:</p>
 
-<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<Employee> as a data store.</p>
+<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<employee> as a data store.</employee></p>
 
 <p><strong>IIdentityService</strong> – describes a service that supplies the <em>current</em> identity. What current is depends on the implementation of course. A concrete WindowsIdentService defines current as the currently logged in Windows user. The TestIdentService implementation always returned the same username, which is useful for testing as we will see.</p>
 
 <p><strong>ILogService</strong> – describes a simple logging service. The ConsoleLogService implementation prints logs to the console.</p>
 
 <!-- more -->
-
-
-<h3>Dependency Injection &amp;Testing</h3>
+<p>### Dependency Injection &amp;Testing</p>
 
 <p>For this post I’ve added a standard MSTest project and a couple of tests for the data provider. The use of dependency injection patterns in the design of this simple example allows us to easily isolate the code under test.</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="n">IContainer</span> <span class="n">afContainer</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">[ClassInitialize]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">TestInit</span><span class="p">(</span><span class="n">TestContext</span> <span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">idSvc</span> <span class="p">=</span> <span class="n">A</span><span class="p">.</span><span class="n">Fake</span><span class="p">&lt;</span><span class="n">IIdentService</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="n">A</span><span class="p">.</span><span class="n">CallTo</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">idSvc</span><span class="p">.</span><span class="n">GetCurrentUserName</span><span class="p">())</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="s">&quot;FAKE-ID&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">bldr</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerBuilder</span><span class="p">();</span>
-</span><span class='line'>    <span class="n">bldr</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">(</span><span class="n">idSvc</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">bldr</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">Fake</span><span class="p">&lt;</span><span class="n">ILogService</span><span class="p">&gt;());</span>
-</span><span class='line'>    <span class="n">bldr</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">DevDataProvider</span><span class="p">&gt;().</span><span class="n">As</span><span class="p">&lt;</span><span class="n">IDataProvider</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="n">afContainer</span> <span class="p">=</span> <span class="n">bldr</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> IContainer afContainer;
 
+[ClassInitialize]
+<span class="directive">public</span> <span class="directive">static</span> <span class="type">void</span> TestInit(TestContext ctx) {
+    var idSvc = A.Fake&lt;IIdentService&gt;();
+    A.CallTo(() =&gt; idSvc.GetCurrentUserName())
+        .Returns(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span>);
+
+    var bldr = <span class="keyword">new</span> ContainerBuilder();
+    bldr.RegisterInstance(idSvc);
+    bldr.RegisterInstance(A.Fake&lt;ILogService&gt;());
+    bldr.RegisterType&lt;DevDataProvider&gt;().As&lt;IDataProvider&gt;();
+    afContainer = bldr.Build();
+}
+</pre></td>
+</tr></table>
+</div>
 
 <p>The test class has a static DI container instance, initialized in the class initializer. I’m using <a href="http://code.google.com/p/fakeiteasy/">FakeItEasy</a> to create a fake IIdentService at line five. Like six tells the FakeItEasy framework what to return when the GetCurrentUserName() method is called on the fake ident service. Having a fixed response makes testing the data provider a piece of cake.</p>
 
@@ -148,24 +149,27 @@
 
 <p>Lastly the data provider we want to test is registered with the DI container builder, and then container is built. The tests go on to use the DI container to resolve an instance of the data provider. The DI container will configure the data provider’s dependencies for a log service and an identity service with the fakes we built.</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="na">[TestMethod()]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">GetCurrentEmployeeTest</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">e</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Employee</span> <span class="p">{</span> <span class="n">WindowsUsername</span> <span class="p">=</span> <span class="s">&quot;FAKE-ID&quot;</span> <span class="p">};</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">dal</span> <span class="p">=</span> <span class="n">afContainer</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IDataProvider</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="n">dal</span><span class="p">.</span><span class="n">AddEmployee</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="n">dal</span><span class="p">.</span><span class="n">GetCurrentEmployee</span><span class="p">();</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">AreEqual</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">WindowsUsername</span><span class="p">,</span> <span class="n">result</span><span class="p">.</span><span class="n">WindowsUsername</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+</pre></td>
+  <td class="code"><pre>[TestMethod()]
+<span class="directive">public</span> <span class="type">void</span> GetCurrentEmployeeTest() {
+    var e = <span class="keyword">new</span> Employee { WindowsUsername = <span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span> };
+    var dal = afContainer.Resolve&lt;IDataProvider&gt;();
+    dal.AddEmployee(e);
+    var result = dal.GetCurrentEmployee();
+    Assert.AreEqual(e.WindowsUsername, result.WindowsUsername);
+}
+</pre></td>
+</tr></table>
+</div>
 
 <p>This is just a small example of using a DI container in combination with a mock / fake framework for testing. The AutoFac DI container can handle much more complex scenarios than what we’ve thrown at it here. The same is true for the FakeItEasy component. Both of these components are well used, well maintained open source projects. You can find lots of documentation and examples for both. Or you can use any number of other DI containers and mocking frameworks to achieve equivalent results.</p>
 
@@ -234,6 +238,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
       </li>
     
@@ -247,10 +255,6 @@
     
       <li class="post">
         <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
       </li>
     
   </ul>

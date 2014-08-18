@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lambda | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/lambda/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -18,180 +18,343 @@
     <link href="http://efvincent.github.io/blog/2010/05/03/combinators-in-c/"/>
     <updated>2010-05-03T01:15:43-04:00</updated>
     <id>http://efvincent.github.io/blog/2010/05/03/combinators-in-c</id>
-    <content type="html"><![CDATA[<p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a &ldquo;first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
+    <content type="html"><![CDATA[<p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a “first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
 
 <!-- more -->
 
-
 <p>Combinators are high order functions that compose, combine, or otherwise modify functions in useful and interesting ways. These types of operations are not typically seen in C#, but expanding your problem solving toolkit to include these concepts is not only fun and interesting, but can result in new, efficient, robust solutions.</p>
 
-<h2>The Timer</h2>
+<h2 id="the-timer">The Timer</h2>
 
 <p>Imagine you’ve got a method that you want to put a stopwatch on. For example, in the following code, you need to see how long it’s taking each download to complete, for debugging information.</p>
 
-<pre><code class="C#">class Program {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+</pre></td>
+  <td class="code"><pre><span class="type">class</span> <span class="class">Program</span> {
 
-    static string url;
+    <span class="directive">static</span> string url;
 
-    static void Main(string[] args) {
+    <span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {
 
-        url = "http://microsoft.com";
+        url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://microsoft.com</span><span class="delimiter">&quot;</span></span>;
         RetrieveFromWeb();
 
-        url = "http://amazon.com";
+        url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://amazon.com</span><span class="delimiter">&quot;</span></span>;
         RetrieveFromWeb();
 
-        url = "http://dpreview.com";
+        url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://dpreview.com</span><span class="delimiter">&quot;</span></span>;
         RetrieveFromWeb();
 
-        Console.Write("Press any key...");
-        Console.ReadKey(true);
+        Console.Write(<span class="string"><span class="delimiter">&quot;</span><span class="content">Press any key...</span><span class="delimiter">&quot;</span></span>);
+        Console.ReadKey(<span class="predefined-constant">true</span>);
     }
 
-    static void RetrieveFromWeb() {
-        System.Net.WebClient wc = new System.Net.WebClient();
+    <span class="directive">static</span> <span class="type">void</span> RetrieveFromWeb() {
+        <span class="predefined-type">System</span>.Net.WebClient wc = <span class="keyword">new</span> <span class="predefined-type">System</span>.Net.WebClient();
         var s = wc.DownloadString(url);
-        Console.WriteLine("URL: {0} - string length is {1}", url, s.Length);
+        Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">URL: {0} - string length is {1}</span><span class="delimiter">&quot;</span></span>, url, s.Length);
     }
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>An ugly solution would be to do this.</p>
 
-<pre><code class="C#">static void Main(string[] args) {
-    var sw = new System.Diagnostics.Stopwatch();
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {
+    var sw = <span class="keyword">new</span> <span class="predefined-type">System</span>.Diagnostics.Stopwatch();
 
     sw.Start();
-    url = "http://microsoft.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://microsoft.com</span><span class="delimiter">&quot;</span></span>;
     RetrieveFromWeb();
-    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+    Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">{0:#,##0}ms</span><span class="delimiter">&quot;</span></span>, sw.ElapsedMilliseconds);
 
     sw.Restart();
-    url = "http://amazon.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://amazon.com</span><span class="delimiter">&quot;</span></span>;
     RetrieveFromWeb();
-    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+    Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">{0:#,##0}ms</span><span class="delimiter">&quot;</span></span>, sw.ElapsedMilliseconds);
 
     sw.Restart();
-    url = "http://dpreview.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://dpreview.com</span><span class="delimiter">&quot;</span></span>;
     RetrieveFromWeb();
-    Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+    Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">{0:#,##0}ms</span><span class="delimiter">&quot;</span></span>, sw.ElapsedMilliseconds);
 
-    Console.Write("Press any key...");
-    Console.ReadKey(true);
+    Console.Write(<span class="string"><span class="delimiter">&quot;</span><span class="content">Press any key...</span><span class="delimiter">&quot;</span></span>);
+    Console.ReadKey(<span class="predefined-constant">true</span>);
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>Try not to get physically ill. You and I both know there’s plenty of code running around in the wild that looks a lot like this. Red flags – you see repeated code – starting, stopping, printing the time. Should we go into the RetrieveFromWeb() method and modify it for timing? Let’s not. Lets try this instead. Step one, let’s define a variable for the method we’re calling. Leaving out the timing code for now, we make this change:</p>
 
-<pre><code class="C#">static void Main(string[] args) {&lt;/p&gt;&lt;p&gt;    // Create a delegate, set it to the method of interest&lt;/p&gt;&lt;p&gt;    Action retrieveFromWeb = RetrieveFromWeb;
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {&lt;/p&gt;&lt;p&gt;    <span class="comment">// Create a delegate, set it to the method of interest&lt;/p&gt;&lt;p&gt;    Action retrieveFromWeb = RetrieveFromWeb;</span>
 
-    url = "http://microsoft.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://microsoft.com</span><span class="delimiter">&quot;</span></span>;
     retrieveFromWeb();
 
-    url = "http://amazon.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://amazon.com</span><span class="delimiter">&quot;</span></span>;
     retrieveFromWeb();
 
-    url = "http://dpreview.com";
+    url = <span class="string"><span class="delimiter">&quot;</span><span class="content">http://dpreview.com</span><span class="delimiter">&quot;</span></span>;
     retrieveFromWeb();
 
-    Console.Write("Press any key...");
-    Console.ReadKey(true);
+    Console.Write(<span class="string"><span class="delimiter">&quot;</span><span class="content">Press any key...</span><span class="delimiter">&quot;</span></span>);
+    Console.ReadKey(<span class="predefined-constant">true</span>);
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
-<p>I’ve added a local variable of type <em>Action, </em>and set it equal to the call to the method <em>RetrieveFromWeb(),</em> and now we’re calling that method indirectly. It has the same exact effect, the method gets called three times. Only we’ve added a layer of indirection. We do this all the time in OO programming; for example, you might have a Person object, but rather than coding directly to that object, you create an IPerson interface, and code to that, opening up the possibility of mocking the object, decorating it, etc. Similar thing here. Rather than “binding” the call sites directly to the method, we’re binding to a variable that points to the method.</p>
+<p>I’ve added a local variable of type <em>Action, _and set it equal to the call to the method _RetrieveFromWeb(),</em> and now we’re calling that method indirectly. It has the same exact effect, the method gets called three times. Only we’ve added a layer of indirection. We do this all the time in OO programming; for example, you might have a Person object, but rather than coding directly to that object, you create an IPerson interface, and code to that, opening up the possibility of mocking the object, decorating it, etc. Similar thing here. Rather than “binding” the call sites directly to the method, we’re binding to a variable that points to the method.</p>
 
 <p>We’re doing this because now we’ve got a value that can be altered or augmented to add additional functionality. This is where a combinator comes in. This is a simple timer combinator:</p>
 
-<pre><code class="C#">class Combinators {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="type">class</span> <span class="class">Combinators</span> {
 
-    public static Action Time(Action a) {
-        return () =&gt; {
-            var sw = new System.Diagnostics.Stopwatch();
+    <span class="directive">public</span> <span class="directive">static</span> <span class="predefined-type">Action</span> <span class="predefined-type">Time</span>(<span class="predefined-type">Action</span> a) {
+        <span class="keyword">return</span> () =&gt; {
+            var sw = <span class="keyword">new</span> <span class="predefined-type">System</span>.Diagnostics.Stopwatch();
             sw.Start();
-            try {
+            <span class="keyword">try</span> {
                 a();
-            } finally {
-                Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+            } <span class="keyword">finally</span> {
+                Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">{0:#,##0}ms</span><span class="delimiter">&quot;</span></span>, sw.ElapsedMilliseconds);
             }
         };
     }
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>This combinator takes an <em>Action</em> and returns a new action (aka a new function), that has timing included. At line 8 the parameter action is being called, the timing is what’s added. The only change we have to make to the main method is where the delegate is being defined:</p>
 
-<pre><code class="C#">Action retrieveFromWeb = Combinators.Time(RetrieveFromWeb);&lt;/p&gt;
-</code></pre>
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+</pre></td>
+  <td class="code"><pre><span class="predefined-type">Action</span> retrieveFromWeb = Combinators.Time(RetrieveFromWeb);&lt;/p&gt;
+</pre></td>
+</tr></table>
+</div>
 
 <p>The rest of the method stays the same, but now, there’s timing added. This is a super-simple, contrived example, but you should be starting to see what’s possible. Let’s take this a step further. Here’s an example simulating retrieval of information from the database:</p>
 
-<pre><code class="C#">static void Main(string[] args) {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {
 
     Func&lt;string, Guid&gt; lookupUser = LookupUser;
 
-    var emails = new[] {
-        "eric@work.com", "joel@office.com", "cole@school.com",
-        "karin@job.com", "haley@home.com" };
+    var emails = <span class="keyword">new</span><span class="type">[]</span> {
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">eric@work.com</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">joel@office.com</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">cole@school.com</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">karin@job.com</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">haley@home.com</span><span class="delimiter">&quot;</span></span> };
 
     foreach (var em in emails) {
         var id = lookupUser(em);
-        Console.WriteLine("user {0} id = {1}", em, id);
+        Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">user {0} id = {1}</span><span class="delimiter">&quot;</span></span>, em, id);
     }
 
-    Console.Write("Press any key...");
-    Console.ReadKey(true);
+    Console.Write(<span class="string"><span class="delimiter">&quot;</span><span class="content">Press any key...</span><span class="delimiter">&quot;</span></span>);
+    Console.ReadKey(<span class="predefined-constant">true</span>);
 }
 
-static Guid LookupUser(string email) {
-    // Fake looking up a user in the database
-    var rnd = new Random(System.DateTime.Now.Millisecond);
-    Thread.Sleep(rnd.Next(250, 2500));
-    return Guid.NewGuid();
+<span class="directive">static</span> Guid LookupUser(string email) {
+    <span class="comment">// Fake looking up a user in the database</span>
+    var rnd = <span class="keyword">new</span> <span class="predefined-type">Random</span>(<span class="predefined-type">System</span>.DateTime.Now.Millisecond);
+    <span class="predefined-type">Thread</span>.Sleep(rnd.Next(<span class="integer">250</span>, <span class="integer">2500</span>));
+    <span class="keyword">return</span> Guid.NewGuid();
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>Memoization is the idea that a function can remember the results for given parameters. It’s like caching, but the term is specific to caching function results based on input. Here’s a simple Memoization combinator for C#:</p>
 
-<pre><code class="C#">public static Func&lt;A, B&gt; Memoize&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
-    var dict = new Dictionary&lt;A, B&gt;();
-    return a =&gt; {
-        B b = default(B);
-        if (!dict.TryGetValue(a, out b)) {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">public</span> <span class="directive">static</span> Func&lt;A, B&gt; Memoize&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
+    var dict = <span class="keyword">new</span> <span class="predefined-type">Dictionary</span>&lt;A, B&gt;();
+    <span class="keyword">return</span> a =&gt; {
+        B b = <span class="keyword">default</span>(B);
+        <span class="keyword">if</span> (!dict.TryGetValue(a, out b)) {
             b = fn(a);
             dict.Add(a, b);
         }
-        return b;
+        <span class="keyword">return</span> b;
     };
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
-<p>It’s simple, but it demonstrates some very useful and interesting functional programming concepts. First, it’s takes and returns Func&lt;A,B>. This is a delegate with a parameter of type A that returns a type B. This will work for effectively any method with that signature. Next point of interest, a dictionary is created, then the lambda is created and returned. The lambda refers to the dictionary defined outside the lambda. It is said that the dictionary is <em>captured</em> in a <em>closure</em>. It’s not important that you remember the terms, but look over the code and see if the concept is clicking for you. This function will return (effectively) a function, the dictionary is <em>captured</em> by that function. Even when the call to Memoize() goes out of scope, the dict variable will still exist in the returned function. Enough talk. We modify the main program just slightly:</p>
+<p>It’s simple, but it demonstrates some very useful and interesting functional programming concepts. First, it’s takes and returns Func&lt;A,B&gt;. This is a delegate with a parameter of type A that returns a type B. This will work for effectively any method with that signature. Next point of interest, a dictionary is created, then the lambda is created and returned. The lambda refers to the dictionary defined outside the lambda. It is said that the dictionary is <em>captured</em> in a <em>closure</em>. It’s not important that you remember the terms, but look over the code and see if the concept is clicking for you. This function will return (effectively) a function, the dictionary is <em>captured</em> by that function. Even when the call to Memoize() goes out of scope, the dict variable will still exist in the returned function. Enough talk. We modify the main program just slightly:</p>
 
-<pre><code class="C#">Func&lt;string, Guid&gt; lookupUser = Combinators.Memoize(LookupUser);
-</code></pre>
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+</pre></td>
+  <td class="code"><pre>Func&lt;string, Guid&gt; lookupUser = Combinators.Memoize(LookupUser);
+</pre></td>
+</tr></table>
+</div>
 
-<p>The Memoize function will create a new function, one that caches results of the LookupUser function <em>automatically.</em> Nothing else has to change in the program to take advantage of this. Want to be sure that it’s actually working? Time it! The non-memoized LookupUser() has a built in Thread.Sleep(2500), and so takes 2.5sec * number of lookups to run. The memoized version will run almost instantly, so we can prove the memoizer is working by timing. The time combinator we created earlier was for timing Actions. I’ve created a overload of the time combinator that has the signature we need - Func&lt;A,B>:</p>
+<p>The Memoize function will create a new function, one that caches results of the LookupUser function <em>automatically.</em> Nothing else has to change in the program to take advantage of this. Want to be sure that it’s actually working? Time it! The non-memoized LookupUser() has a built in Thread.Sleep(2500), and so takes 2.5sec * number of lookups to run. The memoized version will run almost instantly, so we can prove the memoizer is working by timing. The time combinator we created earlier was for timing Actions. I’ve created a overload of the time combinator that has the signature we need - Func&lt;A,B&gt;:</p>
 
-<pre><code class="C#">public static Func&lt;A, B&gt; Time&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
-    return a =&gt; {
-        var sw = new System.Diagnostics.Stopwatch();
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">public</span> <span class="directive">static</span> Func&lt;A, B&gt; <span class="predefined-type">Time</span>&lt;A, B&gt;(Func&lt;A, B&gt; fn) {
+    <span class="keyword">return</span> a =&gt; {
+        var sw = <span class="keyword">new</span> <span class="predefined-type">System</span>.Diagnostics.Stopwatch();
         sw.Start();
-        try {
-            return fn(a);
-        } finally {
-            Console.WriteLine("{0:#,##0}ms", sw.ElapsedMilliseconds);
+        <span class="keyword">try</span> {
+            <span class="keyword">return</span> fn(a);
+        } <span class="keyword">finally</span> {
+            Console.WriteLine(<span class="string"><span class="delimiter">&quot;</span><span class="content">{0:#,##0}ms</span><span class="delimiter">&quot;</span></span>, sw.ElapsedMilliseconds);
         }
     };
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>and added it to the definition of lookUpUser in the main function</p>
 
-<pre><code class="C#">Func&lt;string, Guid&gt; lookupUser =
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+</pre></td>
+  <td class="code"><pre>Func&lt;string, Guid&gt; lookupUser =
   Combinators.Time(
       Combinators.Memoize&lt;string,Guid&gt;(LookupUser));&lt;/p&gt;
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>Again without modifying the main code, we’ve augmented the method. Throw in some duplicate email addresses to test it out. The real power of these techniques becomes more evident the more you use them. Functional programming developers have been using these are similar techniques for years, and now with the added ability and flexibility of C#, we can employ these patters as well.</p>
 ]]></content>
@@ -202,97 +365,70 @@ static Guid LookupUser(string email) {
     <link href="http://efvincent.github.io/blog/2010/02/02/roll-your-own-language-constructs/"/>
     <updated>2010-02-02T23:24:18-05:00</updated>
     <id>http://efvincent.github.io/blog/2010/02/02/roll-your-own-language-constructs</id>
-    <content type="html"><![CDATA[<p>My last couple of blog entries were ostensibly about lambda functions (<a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last one</a>, <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">one before</a>). With these ideas, or a general comfort level with lambdas and the Action&lt;> and Func&lt;> delegate types in the back of your mind, consider this.</p>
+    <content type="html"><![CDATA[<p>My last couple of blog entries were ostensibly about lambda functions (<a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last one</a>, <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">one before</a>). With these ideas, or a general comfort level with lambdas and the Action&lt;&gt; and Func&lt;&gt; delegate types in the back of your mind, consider this.</p>
 
 <!-- more -->
-
 
 <p>I was working on a project where the development team was instructed to implement a retry logic into our data access layer. In other words, if we experience database connectivity problems, retry the operation as seems reasonable.</p>
 
 <p>Here’s some code we’re going to use as a basis for the conversation:</p>
 
-<pre><code class="C#">class Program {
-    static void Main(string[] args) {
+<p>&#8220;` C#
+class Program {
+    static void Main(string[] args) {</p>
 
-        try {
-            Retry01();
-        } catch (Exception ex) {
-            Console.WriteLine(ex.Message);
-        }
-        Console.Write("Press any key...");
-        Console.ReadKey(true);
+<pre><code>    try {
+        Retry01();
+    } catch (Exception ex) {
+        Console.WriteLine(ex.Message);
     }
+    Console.Write("Press any key...");
+    Console.ReadKey(true);
+}
 
-    static void Retry01() {
-        // Iterate through the directories on the C:\ drive
-        foreach (var dir in Directory.EnumerateDirectories("C:\\")) {
-            OccasionallyThrow(0.1d);
-            Console.WriteLine("dir: {0}", dir);
-        }
-    }
-
-    static Random _rnd = new Random(DateTime.Now.Millisecond);
-    /// &lt;summary&gt;
-    /// Occasionally throw an exception
-    /// &lt;/summary&gt;
-    /// &lt;param name="freq"&gt;Percentage (as a fraction) of the time to
-    /// throw an exception. Uses a random number generator, so
-    /// this is not an exact measure&lt;/param&gt;
-    static void OccasionallyThrow(double freq) {
-        if (_rnd.NextDouble() &lt;= freq)
-            throw new InvalidOperationException("An occasional exception");
+static void Retry01() {
+    // Iterate through the directories on the C:\ drive
+    foreach (var dir in Directory.EnumerateDirectories("C:\\")) {
+        OccasionallyThrow(0.1d);
+        Console.WriteLine("dir: {0}", dir);
     }
 }
+
+static Random _rnd = new Random(DateTime.Now.Millisecond);
+/// &lt;summary&gt;
+/// Occasionally throw an exception
+/// &lt;/summary&gt;
+/// &lt;param name="freq"&gt;Percentage (as a fraction) of the time to
+/// throw an exception. Uses a random number generator, so
+/// this is not an exact measure&lt;/param&gt;
+static void OccasionallyThrow(double freq) {
+    if (_rnd.NextDouble() &lt;= freq)
+        throw new InvalidOperationException("An occasional exception");
+} } ```
 </code></pre>
 
 <p>We’ve got a method, <code>OccasionallyThrow(freq)</code> that, occasionally throws an exception (duh). We’ve got a method that iterates through directories on the C:\ drive and pretty much can’t get through it without throwing.</p>
 
 <p>So first pass, let’s fix <code>Retry01()</code> so it actually retries.</p>
 
-<pre><code class="C#">static void Retry01() {
+<p>&#8220;` C#
+static void Retry01() {
     // Iterate through the directories on the C:\ drive
-    foreach (var dir in Directory.EnumerateDirectories("C:\\")) {
+    foreach (var dir in Directory.EnumerateDirectories(“C:\”)) {</p>
 
-        int retryCount = 0;
-        bool done = false;
-        do {
-            try {
-
-                OccasionallyThrow(0.25d);
-                Console.WriteLine("dir: {0}", dir);
-
-                done = true;
-
-            } catch (Exception ex) {
-                if (ex is InvalidOperationException) {
-                    if (retryCount++ &lt; 3) {
-                        // can try again. Under the limit
-                        Console.WriteLine("Caught exception, retry #{0}", retryCount);
-                        done = false;
-                    } else {
-                        // retried too many times already
-                        Console.WriteLine("Exceeded retry count. Throwing.");
-                        throw;
-                    }
-                }
-            }
-        } while (!done);
-    }
-}
-</code></pre>
-
-<p>Yikes. That’s a bunch of code. Assuming we want to make this construct generally available, some refactoring is in order. Worse, the boilerplate code that manages retries <em>surrounds</em> the code we want to apply it to, at lines 10 and 11 of a 30 line block of code. This is a similar problem to the one described in <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">my last post</a>, so you may see where this is going. Here’s one approach to solving the problem.</p>
-
-<pre><code class="C#">static void Retry(Action action, int maxRetries = 3) {
-    int retryCount = 0;
+<pre><code>    int retryCount = 0;
     bool done = false;
     do {
         try {
-            action();
+
+            OccasionallyThrow(0.25d);
+            Console.WriteLine("dir: {0}", dir);
+
             done = true;
+
         } catch (Exception ex) {
             if (ex is InvalidOperationException) {
-                if (retryCount++ &lt; maxRetries) {
+                if (retryCount++ &lt; 3) {
                     // can try again. Under the limit
                     Console.WriteLine("Caught exception, retry #{0}", retryCount);
                     done = false;
@@ -304,45 +440,73 @@ static Guid LookupUser(string email) {
             }
         }
     } while (!done);
-}
+} } ```
+</code></pre>
 
-static void Retry02() {
-    foreach (var dir in Directory.EnumerateDirectories("C:\\")) {
+<p>Yikes. That’s a bunch of code. Assuming we want to make this construct generally available, some refactoring is in order. Worse, the boilerplate code that manages retries <em>surrounds</em> the code we want to apply it to, at lines 10 and 11 of a 30 line block of code. This is a similar problem to the one described in <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">my last post</a>, so you may see where this is going. Here’s one approach to solving the problem.</p>
+
+<p>&#8220;` C#
+static void Retry(Action action, int maxRetries = 3) {
+    int retryCount = 0;
+    bool done = false;
+    do {
+        try {
+            action();
+            done = true;
+        } catch (Exception ex) {
+            if (ex is InvalidOperationException) {
+                if (retryCount++ &lt; maxRetries) {
+                    // can try again. Under the limit
+                    Console.WriteLine(“Caught exception, retry #{0}”, retryCount);
+                    done = false;
+                } else {
+                    // retried too many times already
+                    Console.WriteLine(“Exceeded retry count. Throwing.”);
+                    throw;
+                }
+            }
+        }
+    } while (!done);
+}</p>
+
+<p>static void Retry02() {
+    foreach (var dir in Directory.EnumerateDirectories(“C:\”)) {
         Retry(() =&gt; {
             OccasionallyThrow(0.25d);
-            Console.WriteLine("dir: {0}", dir);
+            Console.WriteLine(“dir: {0}”, dir);
         }, 3);
     }
 }
-</code></pre>
+&#8220;`</p>
 
-<p>This approach solves many of the problems we&rsquo;ve identified. The retry logic is encapsulated in a function that’s trivial to reuse. One point of interest here… if you’re not familiar with the syntax and techniques, it may look a bit strange. But it also should look a little familiar; consider the “using” block:</p>
+<p>This approach solves many of the problems we’ve identified. The retry logic is encapsulated in a function that’s trivial to reuse. One point of interest here… if you’re not familiar with the syntax and techniques, it may look a bit strange. But it also should look a little familiar; consider the “using” block:</p>
 
-<pre><code class="C#">byte someByte = 100;
+<p><code>C#
+byte someByte = 100;
 using (var stream = File.Open("C:\\data.dat", FileMode.CreateNew)) {
     for (byte i = 0; i &lt; someByte; i++)
         stream.WriteByte(i);
 }
-</code></pre>
+</code></p>
 
 <p>The C# using block has a similar pattern. There’s some construct (using), and then a block of code to which the construct applies. It has a similar feel to our Retry() solution. Hmmm… could we use the Retry() approach to write our own using?</p>
 
-<pre><code class="C#">static void Using&lt;T&gt;(T disposableVar, Action&lt;T&gt; usingBlock) where T : IDisposable {
+<p>&#8220;` C#
+static void Using<t>(T disposableVar, Action<t> usingBlock) where T : IDisposable {
     try {
         usingBlock(disposableVar);
     } finally {
         disposableVar.Dispose();
     }
-}
+}</t></t></p>
 
-static void UsingMyUsing() {
-    byte someByte = 100;
+<p>static void UsingMyUsing() {
+    byte someByte = 100;</p>
 
-    Using(File.Open("C:\\data.dat", FileMode.CreateNew), stream =&gt; {
-        for (byte i = 0; i &lt; someByte; i++)
-            stream.WriteByte(i);
-    });
-}
+<pre><code>Using(File.Open("C:\\data.dat", FileMode.CreateNew), stream =&gt; {
+    for (byte i = 0; i &lt; someByte; i++)
+        stream.WriteByte(i);
+}); } ```
 </code></pre>
 
 <p>See that’s why I like coding so much… that’s definitely cool. It’s not exactly character for character like the using statement, but it’s pretty darn close (actually, mine is a couple of characters shorter). And it’s equivalent (at least it is superficially, I haven’t checked thoroughly, it’s almost 1am after all). It had to get a little fancier with the generics, but we’ve recreated a C# language construct.</p>
@@ -356,18 +520,17 @@ static void UsingMyUsing() {
     <link href="http://efvincent.github.io/blog/2010/02/02/c-nuts-and-bolts-lambdas02/"/>
     <updated>2010-02-02T13:51:56-05:00</updated>
     <id>http://efvincent.github.io/blog/2010/02/02/c-nuts-and-bolts-lambdas02</id>
-    <content type="html"><![CDATA[<p>The <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last article</a> described the absolute (and I mean really absolute) basics of lambdas in C#. Assuming you’re continuing from there, where to next? Let’s use some lambdas. There are two approaches we can use. First is using lambdas in places you traditionally used other approaches. Second is using them in new and interesting ways. Hmmm. Which to choose.</p>
+    <content type="html"><![CDATA[<p>The <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last article</a> described the absolute (and I mean really absolute) basics of lambdas in C#. Assuming you’re continuing from there, where to next? Let’s use some lambdas. There are two approaches we can use. First is using lambdas in places you traditionally used other approaches. Second is using them in new and interesting ways. Hmmm. Which to choose.
+<!-- more --></p>
 
-<!-- more -->
-
-
-<h3>New and Interesting Code Constructs using Lambdas</h3>
+<h3 id="new-and-interesting-code-constructs-using-lambdas">New and Interesting Code Constructs using Lambdas</h3>
 
 <p>Yea that’ll do. Let’s take an example situation. You’re tasked with writing part of a data access layer. It’s a low level data access layer, we’re not using Entity Framework, no Linq to SQL. No NHibernate. Just you and the keyboard. Sweet.</p>
 
-<p>The team decides they&rsquo;re comfortable with the forward only read only data reader. Ok. So you start sketching out your code and end up with this:</p>
+<p>The team decides they’re comfortable with the forward only read only data reader. Ok. So you start sketching out your code and end up with this:</p>
 
-<pre><code class="C#">public static IDataReader GetSomeData() {
+<p><code>C#
+public static IDataReader GetSomeData() {
     using (var con = new SqlConnection(conString))
     using (var cmd = new SqlCommand(cmdString, con)) {
         con.Open();
@@ -375,13 +538,14 @@ static void UsingMyUsing() {
         return rdr;
     }
 }
-</code></pre>
+</code></p>
 
 <p>Well, this won’t work. Trying to return the reader, but you’ve got a command and a connection both in using blocks. On returning, those blocks will terminate, disposing of the connection and command (which is good). What now? Briefly consider <em>not</em> using using blocks, not disposing of anything and just returning the reader. Nah – just can’t do that. Ok, so bail on data reader and go with a data set or some other statefull representation of the data I guess.</p>
 
 <p>But WAIT! Don’t punch out just yet. What’s happening here is we’ve got a disposable resource we want to use in a spot that’s surrounded if you will by other important code. Let’s take a look at this:</p>
 
-<pre><code class="C#">public static void UsingReaderGetSomeData(Action&lt;IDataReader&gt; processor) {
+<p><code>C#
+public static void UsingReaderGetSomeData(Action&lt;IDataReader&gt; processor) {
     using (var con = new SqlConnection(conString))
     using (var cmd = new SqlCommand(cmdString, con)) {
         con.Open();
@@ -390,13 +554,14 @@ static void UsingMyUsing() {
         }
     }
 }
-</code></pre>
+</code></p>
 
 <p>Now we’ve got a method that does all the right things with the data reader. The reader, its connection, and its command are all in using blocks so they’ll be properly disposed of. We ask the caller to supply an <code>Action&lt;IDataReader&gt;</code>, and we’ll apply that action to our well protected data reader.</p>
 
 <p>This looks reasonable, but since it’s a data reader, won’t the caller always be doing the <code>while(rdr.Read())</code> thing? Let’s take care of that for them.</p>
 
-<pre><code class="C#">public static void UsingReaderGetSomeData(Action&lt;IDataRecord&gt; processor) {
+<p><code>C#
+public static void UsingReaderGetSomeData(Action&lt;IDataRecord&gt; processor) {
     using (var con = new SqlConnection(conString))
     using (var cmd = new SqlCommand(cmdString, con)) {
         con.Open();
@@ -407,104 +572,106 @@ static void UsingMyUsing() {
         }
     }
 }
-</code></pre>
+</code></p>
 
 <p>Now instead of asking for an <code>Action&lt;IDataReader&gt;</code>, we’re asking for an <code>Action&lt;IDataRecord&gt;</code> that will be called once for each record. Our function can iterate the data reader and call the processor once for each result. Here’s a sample caller that builds an HTML ordered list and writes the results to the console:</p>
 
-<pre><code class="C#">static void Main(string[] args) {
+<p>&#8220;` C#
+static void Main(string[] args) {</p>
 
-    StringBuilder sb = new StringBuilder();
-    sb.AppendLine("&lt;ol&gt;");
-    Dal.UsingReaderGetSomeData(dr =&gt; {
-        sb.Append(" &lt;li&gt;");
-        sb.Append(dr[0]);
-        sb.AppendLine("&lt;/li&gt;");
-    });
-    sb.AppendLine("&lt;/ol&gt;");
-    Console.WriteLine(sb);
+<pre><code>StringBuilder sb = new StringBuilder();
+sb.AppendLine("&lt;ol&gt;");
+Dal.UsingReaderGetSomeData(dr =&gt; {
+    sb.Append(" &lt;li&gt;");
+    sb.Append(dr[0]);
+    sb.AppendLine("&lt;/li&gt;");
+});
+sb.AppendLine("&lt;/ol&gt;");
+Console.WriteLine(sb);
 
-    Console.Write("Press any key...");
-    Console.ReadKey(true);
-}
+Console.Write("Press any key...");
+Console.ReadKey(true); } ```
 </code></pre>
 
 <p>A client uses our function like a loop. Everything it puts in the curly braces from line 5 – 9 is like the the body of the loop. With this approach, we’re getting the benefits of the data reader, it’s fast and forward only. The construct is similar to a loop, so the consumers (our team mates) should be able to understand how to use this. And finally, we’re taking proper care to dispose of the resources.</p>
 
 <p>To summarize, this approach allows you define functions that accept functions as parameters, and build more complex behavior. This technique is called <em>functional composition</em>. It’s one of the core principal concepts of Functional Programming, but as we’ve seen here, it can be applied to solutions in imperative programming languages like C# to great effect. Using techniques like this help you break your code down in smaller and smaller chunks, with some functions doing little bits of work, and other functions serving as glue or framework code. All this makes your code easier to test and less prone to errors if done correctly.</p>
 
-<h3>Taking it Further, or, Something More like Real Production Code</h3>
+<h3 id="taking-it-further-or-something-more-like-real-production-code">Taking it Further, or, Something More like Real Production Code</h3>
 
 <p>Alright, that was interesting. And as far as blog posts go, that’s all I was really trying to get across. But if you’re curious about what production code might look like that uses an approach like this, here’s an example:</p>
 
-<pre><code class="C#">private static void UsingReader(
+<p>&#8220;` C#
+private static void UsingReader(
     string command,
-    Action&lt;SqlCommand&gt; preAction = null,
-    IEnumerable&lt;Action&lt;IDataRecord&gt;&gt; recordProcessors = null,
-    Action&lt;SqlCommand&gt; postAction = null) {
+    Action<sqlcommand> preAction = null,
+    IEnumerable&lt;Action<idatarecord>&gt; recordProcessors = null,
+    Action<sqlcommand> postAction = null) {</sqlcommand></idatarecord></sqlcommand></p>
 
-    // Instantiate connection and command, open the connection
-    using (var con = new SqlConnection(conString))
-    using (var cmd = new SqlCommand(command, con)) {
-        con.Open();
+<pre><code>// Instantiate connection and command, open the connection
+using (var con = new SqlConnection(conString))
+using (var cmd = new SqlCommand(command, con)) {
+    con.Open();
 
-        // Execute a pre-action if specified
-        if (preAction != null) preAction(cmd);
+    // Execute a pre-action if specified
+    if (preAction != null) preAction(cmd);
 
-        // If the reader processing blocks are supplied
-        if (recordProcessors != null) {
+    // If the reader processing blocks are supplied
+    if (recordProcessors != null) {
 
-            // Get an enumerator for the processing blocks &amp; move
-            // to the first processor
-            var processorEnumerator = recordProcessors.GetEnumerator();
-            if (!processorEnumerator.MoveNext())
-                throw new InvalidOperationException(
-                    "Supply at least one record processor");
+        // Get an enumerator for the processing blocks &amp; move
+        // to the first processor
+        var processorEnumerator = recordProcessors.GetEnumerator();
+        if (!processorEnumerator.MoveNext())
+            throw new InvalidOperationException(
+                "Supply at least one record processor");
 
-            // Open the reader
-            using (var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection)) {
+        // Open the reader
+        using (var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection)) {
 
-                do {
-                    // Get the current record processing block
-                    var recordProcessor = processorEnumerator.Current;
+            do {
+                // Get the current record processing block
+                var recordProcessor = processorEnumerator.Current;
 
-                    // Iterate the records of the IDataReader using the current block
-                    while (reader.Read())
-                        recordProcessor(reader);
+                // Iterate the records of the IDataReader using the current block
+                while (reader.Read())
+                    recordProcessor(reader);
 
-                    // The loop condition advances both IDataReader and enumerator
-                    // in sync continuing as long as there's a next resultSet and a
-                    // processor to process it
-                } while (reader.NextResult() &amp;&amp; processorEnumerator.MoveNext());
-            }
+                // The loop condition advances both IDataReader and enumerator
+                // in sync continuing as long as there's a next resultSet and a
+                // processor to process it
+            } while (reader.NextResult() &amp;&amp; processorEnumerator.MoveNext());
+        }
 
-        } else
-            // If there are no actions to execute using data reader, just execute query
-            cmd.ExecuteNonQuery();
+    } else
+        // If there are no actions to execute using data reader, just execute query
+        cmd.ExecuteNonQuery();
 
-        // Do any clean up that might be needed
-        if (postAction != null)
-            postAction(cmd);
-    }
-}
+    // Do any clean up that might be needed
+    if (postAction != null)
+        postAction(cmd);
+} } ```
 </code></pre>
 
 <p>Here we pass optional pre- and post- actions that allow the caller to optionally manipulate the command before and after it’s executed. We also accept a set of actions we’re calling record processors, to handle the case when a stored procedure or command is returning multiple result sets. In the case of multiple result sets, we’d expect the caller to send a different record processor for each result set it expects.</p>
 
 <p>So this seems like a lot of code. Why bother? The way I approached it was that this code is a private method of the data access layer, and the public methods would leverage this method to avoid repeating the gory details of working with data readers. Leveraging the above method, our original <code>GetSomeData()</code> now looks like:</p>
 
-<pre><code class="C#">public static void UsingReaderGetSomeData(Action&lt;IDataRecord&gt; recordProcessor) {
+<p><code>C#
+public static void UsingReaderGetSomeData(Action&lt;IDataRecord&gt; recordProcessor) {
     UsingReader(cmdString, null, new Action&lt;IDataRecord&gt;[] { recordProcessor });
 }
-</code></pre>
+</code></p>
 
 <p>And if we had a data access method that took a couple of parameters, it would look like this:</p>
 
-<pre><code class="C#">public static void UsingReaderGetSearch(string criteria, Action&lt;IDataRecord&gt; resultProcessor) {
+<p><code>C#
+public static void UsingReaderGetSearch(string criteria, Action&lt;IDataRecord&gt; resultProcessor) {
     UsingReader(cmdString,
         cmd =&gt; cmd.Parameters.Add(new SqlParameter("@searchCriteria", criteria)),
         new Action&lt;IDataRecord&gt;[] { resultProcessor });
 }
-</code></pre>
+</code></p>
 
 <p>I hope this has proved helpful. I’ll keep throwing more of these posts out there, let me know if there’s something you’d like to see.</p>
 ]]></content>
@@ -519,51 +686,54 @@ static void UsingMyUsing() {
 
 <!-- more -->
 
-
 <p>The (arguably) simplest lambda.</p>
 
-<pre><code class="C#">string message = "Hello World";
-Action simpleLambda = () =&gt; Console.WriteLine(message);
+<p>&#8220;` C#
+string message = “Hello World”;
+Action simpleLambda = () =&gt; Console.WriteLine(message);</p>
 
-Console.WriteLine(“Get ready for a message!”);
+<p>Console.WriteLine(“Get ready for a message!”);
 simpleLambda();
 Console.WriteLine(“That was the message!”);
-</code></pre>
+&#8220;`</p>
 
 <p>The the type “Action” is a delegate, which can be thought of as a function pointer. The variable “simpleLambda” is now a function. The same way that “message” is a string. In reality, there are delegates and pointers involved, but for the day to day, just think of “simpleLambda” as a function. It can be called just like you would any function, which is what we’ve done here.</p>
 
 <p>There are two different Types that are generally used for these functions. They are “Action” and “Func”. Action, which we just saw, is a function that doesn’t return anything. It’s a void function. When we want to define a function that returns something, we use the “Func” type. Remember back to your early days of Visual Basic, Pascal, etc., when there were different keywords that you’d use to specify if there was a return value or not? Same kinda thing here. Func returns, Action doesn’t. So here’s a Func example.</p>
 
-<pre><code class="C#">// Define a func that returns something
+<p>&#8220;` C#
+// Define a func that returns something</p>
 
-Func&lt;string&gt; minutesAndSeconds = () =&gt; string.Format("{0:mm:ss.ffff}", DateTime.Now);
+<p>Func<string> minutesAndSeconds = () =&gt; string.Format(&#8220;{0:mm:ss.ffff}&#8221;, DateTime.Now);</string></p>
 
-Console.Write("Current Minutes and seconds are: ");
+<p>Console.Write(“Current Minutes and seconds are: “);
 Console.WriteLine(minutesAndSeconds());
-</code></pre>
+&#8220;`</p>
 
-<p>Here’s a function that returns a string. It’s type is Func<string>, which you can read as a function that returns a string. Let’s break down the syntax of the lambda itself. It centers around the lambda operator “=>”, which some people read as “goes to”. In both our examples, simpleLambda and minutesAndSeconds are functions that take no parameters. So on the left of the lambda operator are empty parenthesis. Means no parameters to the function. Easy. On the right is the body of the function.</p>
+<p>Here’s a function that returns a string. It’s type is Func<string>, which you can read as a function that returns a string. Let’s break down the syntax of the lambda itself. It centers around the lambda operator “=&gt;”, which some people read as “goes to”. In both our examples, simpleLambda and minutesAndSeconds are functions that take no parameters. So on the left of the lambda operator are empty parenthesis. Means no parameters to the function. Easy. On the right is the body of the function.</string></p>
 
 <p>There are two ways of expressing the body of the function. If the body is a single statement, you can just put that statement. This is called an Expression Lambda. If you need more than one statement on the right of the Lambda operator, you end up with something like this:</p>
 
-<pre><code class="C#">Func&lt;string, string&gt; hasher =
+<p>&#8220;` C#
+Func&lt;string, string&gt; hasher =
     s =&gt; {
         var sha = new System.Security.Cryptography.SHA1CryptoServiceProvider();
         return Convert.ToBase64String(sha.ComputeHash(ASCIIEncoding.UTF8.GetBytes(s)));
-    };
+    };</p>
 
-Console.WriteLine("The base64 encoded SHA1 hash of \"Hello World\" is {0}", hasher("Hello World"));
-</code></pre>
+<p>Console.WriteLine(“The base64 encoded SHA1 hash of &#8220;Hello World&#8221; is {0}”, hasher(“Hello World”));
+&#8220;`</p>
 
-<p>A couple of differences here… first there’s some added whitespace to make stuff more readable. Don’t let it throw you. Whitespace == good. Second, the type is now Func&lt;string, string>. The key to reading the Func type is that the last generic type specification is the return type. So it reads “a function that takes a string and returns a string”. Since this lambda takes a string as a parameter, to the left of the lambda operator goes the parameter. You can name this parameter anything you want, just like when you’re defining a regular function. This parameter is bound to the input to the function.</p>
+<p>A couple of differences here… first there’s some added whitespace to make stuff more readable. Don’t let it throw you. Whitespace == good. Second, the type is now Func&lt;string, string&gt;. The key to reading the Func type is that the last generic type specification is the return type. So it reads “a function that takes a string and returns a string”. Since this lambda takes a string as a parameter, to the left of the lambda operator goes the parameter. You can name this parameter anything you want, just like when you’re defining a regular function. This parameter is bound to the input to the function.</p>
 
 <p>The next thing that’s different is there are open and close curly brackets, just like a function definition, after the lambda operator. This is the body, it’s just like a function body. You declare local variables in here, and when you’re done, you return something. Or if this is an Action instead of a Func, you don’t need to return anything (remember, Action is like a void function). This is the same function except as a statically defined method on a class:</p>
 
-<pre><code class="C#">public static string Hasher(string s) {
+<p><code>C#
+public static string Hasher(string s) {
     var sha = new System.Security.Cryptography.SHA1CryptoServiceProvider();
     return Convert.ToBase64String(sha.ComputeHash(ASCIIEncoding.UTF8.GetBytes(s)));
 }
-</code></pre>
+</code></p>
 
 <p>Thaaaaatts pretty much it. There’re plenty of implementation details under the covers, and there’s a whole world of design patterns and techniques to explore with regards to <em>using</em> lambdas. But as far as what they are, you’re looking at it. I’ll push it a little further in the next blog post. If you’ve got any questions or want to dive deeper into this or any other subject I write about, let me know in the comments. In the mean time, have fun!</p>
 ]]></content>

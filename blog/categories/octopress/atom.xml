@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Octopress | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -20,25 +20,21 @@
     <id>http://efvincent.github.io/blog/2014/08/15/Octopress-github-ruby-windows</id>
     <content type="html"><![CDATA[<p>For my shiney new blog I decided to go full hipster and host on GitHub. This means that
 the entire site, source code as well as the blog website itself, can be seen at
-<a href="https://github.com/efvincent/efvincent.github.io">my blog&rsquo;s repository</a>. Of course all of this will be painfully
-uncool by this time next year. But for the time being it&rsquo;s fun and the tech is relevant.</p>
+<a href="https://github.com/efvincent/efvincent.github.io">my blog’s repository</a>. Of course all of this will be painfully
+uncool by this time next year. But for the time being it’s fun and the tech is relevant.</p>
 
 <p>Dig in if you want to see the ins and outs of setting all this up on a Windows workstation,
-because Windows is so far out of fashion stuff is starting to not work on it by default. Karma.</p>
-
+because Windows is so far out of fashion stuff is starting to not work on it by default. Karma.
 <!--more -->
-
-
-<h2>Static Site Generation</h2>
-
-<p>The way GitHub hosted web sites work is that the entire web site is pure static HTML,
+## Static Site Generation
+The way GitHub hosted web sites work is that the entire web site is pure static HTML,
 JavaScript, and CSS. If you work in the industry you realize that all the web site
 frameworks (server side) like JSP, ASP.NET, Rails, PHP, etc. all <em>generate</em> pages on
 the fly as the requests come in. This requires a server be running somewhere that can
 run .NET, Java, Ruby, or whatever.</p>
 
 <p>A static site everything is pre-generated, so any server that can respond to requests
-by serving up a file can host a static site. But no one want&rsquo;s to hand craft HTML pages
+by serving up a file can host a static site. But no one want’s to hand craft HTML pages
 for every blog post. So what you have is a generator; some kind of program that can take
 blog posts written in plain text and <strong>poof!</strong> Generate a static website.</p>
 
@@ -46,24 +42,22 @@ blog posts written in plain text and <strong>poof!</strong> Generate a static we
 in (typically) <a href="https://en.wikipedia.org/wiki/Markdown">markdown</a>, CSS, templates for HTML,
 and the Ruby / JavaScript / whatever that the generator is written in.</p>
 
-<p>There&rsquo;s typically a command line interface; so you issue the proper command the
+<p>There’s typically a command line interface; so you issue the proper command the
 generator takes your markdown and creates a complete, static web site.</p>
 
-<h2>GitHub</h2>
-
-<p>That&rsquo;s where <a href="www.github.com">GitHub</a> comes in. If you don&rsquo;t know what GitHub is, or
-if you&rsquo;re completely lost at this point, then you probably need to hit up this
+<h2 id="github">GitHub</h2>
+<p>That’s where <a href="www.github.com">GitHub</a> comes in. If you don’t know what GitHub is, or
+if you’re completely lost at this point, then you probably need to hit up this
 <a href="https://www.youtube.com/watch?v=oHg5SJYRHA0">everything you need to know to become a modern developer</a>
 tutorial.</p>
 
 <p>Think about it for two seconds, it makes perfect sense. GitHub hosts files in a repository and is a web site.
-So if you put a static web site&rsquo;s worth of files <em>in a repository</em>, and GitHub does a tiny bit of magic, it
-can serve those web pages up. And that&rsquo;s all a GitHub hosted static site is. You write posts in
+So if you put a static web site’s worth of files <em>in a repository</em>, and GitHub does a tiny bit of magic, it
+can serve those web pages up. And that’s all a GitHub hosted static site is. You write posts in
 markdown, you use a generator to create a static site, and you check it into GitHub.</p>
 
-<h2>OctoPress</h2>
-
-<p>I admittedly don&rsquo;t have a ton of experience with static site generators. I played with
+<h2 id="octopress">OctoPress</h2>
+<p>I admittedly don’t have a ton of experience with static site generators. I played with
 a couple before committing to <a href="www.octopress.org">Octopress</a>. At first I wanted to
 use a <a href="http://nodejs.org">Node.js</a> based static site generator. I googled around a bit
 and ended up playing with <a href="https://github.com/jnordberg/wintersmith">Wintersmith</a> for
@@ -72,26 +66,25 @@ A bit more poking around and I ended up with <a href="www.octopress.org">Octopre
 built on top of Jekyll, offers additional features, and incredibly well written, well
 documented, and easy to use.</p>
 
-<p>When you go to their site you&rsquo;ll get walked through the installation step by step,
+<p>When you go to their site you’ll get walked through the installation step by step,
 and there are some nice Ruby build tools available to get things moving, including
 configuring your new Octopress generator to work with GitHub web sites. <strong>Highly recommended</strong></p>
 
-<h2>Ruby</h2>
-
+<h2 id="ruby">Ruby</h2>
 <p>Ok so <a href="https://www.youtube.com/watch?v=gBkDvqIGSaE">Ruby hates Windows</a>. It might be passive,
-but the ill feelings are there. Which is fine, everyone can&rsquo;t love everyone, and Microsoft
-has kinda earned it by being a dick until very recently. But whatever, I&rsquo;m not with starting
+but the ill feelings are there. Which is fine, everyone can’t love everyone, and Microsoft
+has kinda earned it by being a dick until very recently. But whatever, I’m not with starting
 flame war. It happens that I still use Windows for all kinds of reasons, so I needed to
 get Ruby on my workstation.</p>
 
 <p>Actually I had installed Ruby using <a href="http://chocolatey.org/">Chocolately</a> because I
-love playing with all the languages, but to run Jekyll you&rsquo;ll need the
+love playing with all the languages, but to run Jekyll you’ll need the
 <a href="http://rubyinstaller.org/downloads/">Ruby Development Kit</a>. The RDK is platform
 specific, and is needed to build <em>gems</em> (Ruby packages) that are platform specific,
-which Jekyll either is or depends on indirectly (I didn&rsquo;t check).</p>
+which Jekyll either is or depends on indirectly (I didn’t check).</p>
 
 <p>There are <a href="https://github.com/oneclick/rubyinstaller/wiki/Development-Kit">very clear instructions</a>
-that you can follow for getting this set up. Once that&rsquo;s done you can play along with
+that you can follow for getting this set up. Once that’s done you can play along with
 the <a href="www.octopress.org">Octopress</a> setup instructions, which are great. Just follow the
 track that has you deploy to GitHub.</p>
 ]]></content>

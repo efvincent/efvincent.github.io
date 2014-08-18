@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Dependency Injection | Curried Functions]]></title>
   <link href="http://efvincent.github.io/blog/categories/dependency-injection/atom.xml" rel="self"/>
   <link href="http://efvincent.github.io/"/>
-  <updated>2014-08-15T17:06:25-04:00</updated>
+  <updated>2014-08-18T13:03:44-04:00</updated>
   <id>http://efvincent.github.io/</id>
   <author>
     <name><![CDATA[Eric F. Vincent]]></name>
@@ -18,42 +18,56 @@
     <link href="http://efvincent.github.io/blog/2011/06/24/di-bootstrap/"/>
     <updated>2011-06-24T02:07:31-04:00</updated>
     <id>http://efvincent.github.io/blog/2011/06/24/di-bootstrap</id>
-    <content type="html"><![CDATA[<h2>Constructor Injection</h2>
-
-<p>The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are <em>injected</em> into the class by some external mechanism, as opposed to being “newed up” directly. The most common form of DI is constructor injection, where a class defines a constructor that has as its parameters the external dependencies required by the class.</p>
-
+    <content type="html"><![CDATA[<h2 id="constructor-injection">Constructor Injection</h2>
+<p>The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are <em>injected</em> into the class by some external mechanism, as opposed to being “newed up” directly. The most common form of DI is constructor injection, where a class defines a constructor that has as its parameters the external dependencies required by the class.
 <!-- more -->
+There are several benefits to this particular method of injection; the most obvious is that in a well designed system the dependencies of a class are clearly visible in the constructor. In the <a href="http://blog.efvincent.com/practical-di-101">DI 101</a> post a data provider was defined like this:</p>
 
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">public</span> <span class="type">class</span> <span class="class">DevDataProvider</span> : IDataProvider {
+    <span class="directive">private</span> readonly IIdentService _identService;
+    <span class="directive">private</span> readonly ILogService _logSvc;
+    <span class="directive">private</span> <span class="directive">static</span> readonly <span class="predefined-type">List</span>&lt;Employee&gt; EmployeeStore = <span class="keyword">new</span> <span class="predefined-type">List</span>&lt;Employee&gt;();
 
-<p>There are several benefits to this particular method of injection; the most obvious is that in a well designed system the dependencies of a class are clearly visible in the constructor. In the <a href="http://blog.efvincent.com/practical-di-101">DI 101</a> post a data provider was defined like this:</p>
-
-<pre><code class="C#">public class DevDataProvider : IDataProvider {
-    private readonly IIdentService _identService;
-    private readonly ILogService _logSvc;
-    private static readonly List&lt;Employee&gt; EmployeeStore = new List&lt;Employee&gt;();
-
-    public DevDataProvider(IIdentService identService, ILogService logSvc) {
-        if (identService == null) throw new ArgumentNullException("identService");
-        if (logSvc == null) throw new ArgumentNullException("logSvc");
+    <span class="directive">public</span> DevDataProvider(IIdentService identService, ILogService logSvc) {
+        <span class="keyword">if</span> (identService == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">identService</span><span class="delimiter">&quot;</span></span>);
+        <span class="keyword">if</span> (logSvc == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">logSvc</span><span class="delimiter">&quot;</span></span>);
         _identService = identService;
         _logSvc = logSvc;
     }
 
-    // Remaining implementation omitted for brevity
+    <span class="comment">// Remaining implementation omitted for brevity</span>
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>The constructor is on line 6. From this constructor we can see that the DevDataProvider has dependencies on an IIdentityService and an ILogService. There should be no other dependencies in the class other than to well known, stable libraries like the <a href="http://msdn.microsoft.com/en-us/library/hfa3fa08.aspx">BCL</a>.</p>
 
 <p>There are other advantages to using constructor injection. Should the list of dependencies get too long, say longer than four parameters, you’ve got a code smell that perhaps the class is doing too much, violating the single responsibility principal.</p>
 
-<h2>Bootstrapping</h2>
+<h2 id="bootstrapping">Bootstrapping</h2>
 
 <p>In order to be able to resolve dependencies, the DI container must be configured. This set up is done during the <strong>bootstrapping</strong> phase. Typically this only needs to be done once, but changes to the container make sense in some scenarios like when a DI container is being used to support extensions or plug-ins. In that case components might be added or removed from the DI container while the app is running. These scenarios are out of scope for this post.</p>
 
 <p>The container may be configured in several ways – Auto configuring, configuration in code, and configuration files (typically XML / app or web.config files). My current favorite DI framework is AutoFac, and I typically configure in code, but different projects will have different demands, so familiarize yourself with the specifics of your selected framework and understand the tradeoffs involved in the different types of configuration. You can even configure the DI container using more than one method – perhaps Auto configuring for the bulk of the registrations, then code or XML for more specific configuration needs.</p>
 
-<h2>Bootstrapping a Console Application</h2>
+<h2 id="bootstrapping-a-console-application">Bootstrapping a Console Application</h2>
 
 <p>Depending on the type of application you’re working on, there are specific places for bootstrapping to take place. The <em>place</em> to do configuration and bootstrapping is sometimes referred to as the <strong>composition root</strong> <em>(you can read about these concepts in more detail in <a href="http://www.manning.com/seemann/">Mark Seeman’s Dependency Injection</a> book, published by Manning)</em>.</p>
 
@@ -65,42 +79,52 @@
 
 <p>Once the container is configured, the main entry point requests that the DI container resolve the App type [3]. The DI container creates whatever dependencies are required by the App [4]. This happens hierarchically; dependencies may themselves have dependencies and so on. The DI container sorts all this out and is also responsible for lifetimes of create objects etc. The DI container can create and return the instance off the App [5]. The Main() function can then pass control to the app [6] which will leverage the injected dependencies [7] to do the real work.</p>
 
-<h2>Only Directly Reference the DI Container in the Bootstrapper</h2>
-
+<h2 id="only-directly-reference-the-di-container-in-the-bootstrapper">Only Directly Reference the DI Container in the Bootstrapper</h2>
 <p>This is an important point, and if you get nothing else from this post, understand this.</p>
 
 <ul>
-<li>The DI container is configured in the composition root (Main() in this case)</li>
-<li>The DI container is used to resolve or build the App</li>
-<li>The app is then run to do the work</li>
+  <li>The DI container is configured in the composition root (Main() in this case)</li>
+  <li>The DI container is used to resolve or build the App</li>
+  <li>The app is then run to do the work</li>
 </ul>
-
 
 <p>Once the app is instantiated, it should have all of its dependencies injected. <strong>The app should not have a reference to the DI container!</strong> If we allow the app or any of its dependencies to have access to the container, then several bad things happen:</p>
 
-<h4>We’ve taken on a dependency to the DI Container itself</h4>
+<h4 id="weve-taken-on-a-dependency-to-the-di-container-itself">We’ve taken on a dependency to the DI Container itself</h4>
 
 <p>Yes its true that the assembly has a dependency on the DI container. But for purposes of this discussion the assembly is not the application. The App class and the services (other classes) it depends on is the application. We don’t want to take a dependency on the DI container in those classes; rather, we should be able to switch to a different DI container if needed and not effect the App and the dependent services.</p>
 
 <p>In any kind of a significant application the app’s classes would be in a different assembly, and services might be scattered across even more assemblies, and those should not have a dependency on a DI container. They should however be designed and built with the DI pattern in mind – with the dependencies specified in the constructor, with references to abstract types or interfaces, rather than to concrete implementations.</p>
 
-<h4>We’re hiding a dependency inside the App</h4>
+<h4 id="were-hiding-a-dependency-inside-the-app">We’re hiding a dependency inside the App</h4>
 
 <p>Earlier I mentioned that a benefit of constructor injection is that the dependencies are clearly visible (even <em>documented</em> if you will) in the signature of the constructor. We really don’t want to see lines like this buried in the methods of the classes:</p>
 
-<pre><code class="C#">// Anti-pattern - don't use DI container except
-// in composition root
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+</pre></td>
+  <td class="code"><pre><span class="comment">// Anti-pattern - don't use DI container except</span>
+<span class="comment">// in composition root</span>
 
-var dal = Container.Resolve&lt;IDataAccessService&gt;();
+var dal = <span class="predefined-type">Container</span>.Resolve&lt;IDataAccessService&gt;();
 
-// And defintely don't do this
+<span class="comment">// And defintely don't do this</span>
 
-var dal = new SqlDataAccessService(connectString);
-</code></pre>
+var dal = <span class="keyword">new</span> SqlDataAccessService(connectString);
+</pre></td>
+</tr></table>
+</div>
 
 <p>A class that that has these lines buried inside somewhere has hidden dependencies on both the DI container and IDataAccessService (or worse, by using the new keyword directly, on the SqlDataAccessService). These hidden dependencies undermine the benefits of using DI containers at all.</p>
 
-<h3>Bootstrapping in other Application Types</h3>
+<h3 id="bootstrapping-in-other-application-types">Bootstrapping in other Application Types</h3>
 
 <p>Other types of apps have different places for bootstrapping and application roots. Unlike a console app, an ASP.NET MVC 3 application isn’t top-down linear, the application must respond to web requests. It does so by creating instances of controllers, and calling methods on those controllers to respond to web requests.</p>
 
@@ -108,13 +132,13 @@ var dal = new SqlDataAccessService(connectString);
 
 <p>In ASP.NET MVC 3 this is accomplished by providing a <em>hook</em>, or a place where we can supply a DI container for ASP.NET MVC 3 to use when creating controllers. The developer configures the DI container, and then wires that container into the MVC framework via an instance of IControllerActivator. In the case of AutoFac, there’s a <a href="http://nuget.org/List/Packages/Autofac.Mvc3">NuGet package called AutoFac.Mvc3</a> that includes classes to integrate with MVC3. The implementation details are beyond the scope of this post – just <a href="http://duckduckgo.com/">DuckDuckGo</a> AutoFac.Mvc and find a wealth of additional detail. Same goes for WCF, WPF, and Silverlight applications. There are best practices for configuring DI containers for each app type.</p>
 
-<h3>DI Unfriendly Application Types</h3>
+<h3 id="di-unfriendly-application-types">DI Unfriendly Application Types</h3>
 
 <p>Some application types just do not lend themselves very easily to dependency injection patterns. Classic ASP.NET pops into mind immediately. It was written before Microsoft was as willing to accept OSS, community driven concepts such as DI Containers. A big red flag with ASP.NET is that all subclasses to the Page class (which is what all your ASP.NET pages are) must have a parameterless default constructor. Well there goes parameter injection!</p>
 
 <p>There are other mechanisms for implementing DI patterns in this case, but they’re sub-optimal. Again I’d refer you to <a href="http://www.manning.com/seemann/">Mark Seeman’s Dependency Injection</a> book, which is far and away the best DI book in the .NET space, for advice and examples in dealing with DI unfriendly application types.</p>
 
-<h3>In Summary</h3>
+<h3 id="in-summary">In Summary</h3>
 
 <p>Hopefully this was helpful in your understanding of a couple of key aspects of using DI containers. Practice a few console applications, and write some tests too. Once you get the idea, move on to more interesting application types. Before long you’ll be shocked you ever wrote applications <em>without</em> some degree of dependency injection. Yea – it’s that good for you.</p>
 ]]></content>
@@ -127,34 +151,50 @@ var dal = new SqlDataAccessService(connectString);
     <id>http://efvincent.github.io/blog/2011/05/27/di-mock</id>
     <content type="html"><![CDATA[<p><a href="http://blog.efvincent.com/practical-di-101">My last post</a> provided a brief introduction into dependency injection. To review, the example included a data provider for Employee objects, which included a feature to return the object corresponding to the currently logged in user. In the end the following interfaces were defined:</p>
 
-<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<Employee> as a data store.</p>
+<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<employee> as a data store.</employee></p>
 
 <p><strong>IIdentityService</strong> – describes a service that supplies the <em>current</em> identity. What current is depends on the implementation of course. A concrete WindowsIdentService defines current as the currently logged in Windows user. The TestIdentService implementation always returned the same username, which is useful for testing as we will see.</p>
 
 <p><strong>ILogService</strong> – describes a simple logging service. The ConsoleLogService implementation prints logs to the console.</p>
 
 <!-- more -->
-
-
-<h3>Dependency Injection &amp;Testing</h3>
+<p>### Dependency Injection &amp;Testing</p>
 
 <p>For this post I’ve added a standard MSTest project and a couple of tests for the data provider. The use of dependency injection patterns in the design of this simple example allows us to easily isolate the code under test.</p>
 
-<pre><code class="C#">static IContainer afContainer;
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> IContainer afContainer;
 
 [ClassInitialize]
-public static void TestInit(TestContext ctx) {
+<span class="directive">public</span> <span class="directive">static</span> <span class="type">void</span> TestInit(TestContext ctx) {
     var idSvc = A.Fake&lt;IIdentService&gt;();
     A.CallTo(() =&gt; idSvc.GetCurrentUserName())
-        .Returns("FAKE-ID");
+        .Returns(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span>);
 
-    var bldr = new ContainerBuilder();
+    var bldr = <span class="keyword">new</span> ContainerBuilder();
     bldr.RegisterInstance(idSvc);
     bldr.RegisterInstance(A.Fake&lt;ILogService&gt;());
     bldr.RegisterType&lt;DevDataProvider&gt;().As&lt;IDataProvider&gt;();
     afContainer = bldr.Build();
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>The test class has a static DI container instance, initialized in the class initializer. I’m using <a href="http://code.google.com/p/fakeiteasy/">FakeItEasy</a> to create a fake IIdentService at line five. Like six tells the FakeItEasy framework what to return when the GetCurrentUserName() method is called on the fake ident service. Having a fixed response makes testing the data provider a piece of cake.</p>
 
@@ -162,15 +202,27 @@ public static void TestInit(TestContext ctx) {
 
 <p>Lastly the data provider we want to test is registered with the DI container builder, and then container is built. The tests go on to use the DI container to resolve an instance of the data provider. The DI container will configure the data provider’s dependencies for a log service and an identity service with the fakes we built.</p>
 
-<pre><code class="C#">[TestMethod()]
-public void GetCurrentEmployeeTest() {
-    var e = new Employee { WindowsUsername = "FAKE-ID" };
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+</pre></td>
+  <td class="code"><pre>[TestMethod()]
+<span class="directive">public</span> <span class="type">void</span> GetCurrentEmployeeTest() {
+    var e = <span class="keyword">new</span> Employee { WindowsUsername = <span class="string"><span class="delimiter">&quot;</span><span class="content">FAKE-ID</span><span class="delimiter">&quot;</span></span> };
     var dal = afContainer.Resolve&lt;IDataProvider&gt;();
     dal.AddEmployee(e);
     var result = dal.GetCurrentEmployee();
     Assert.AreEqual(e.WindowsUsername, result.WindowsUsername);
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>This is just a small example of using a DI container in combination with a mock / fake framework for testing. The AutoFac DI container can handle much more complex scenarios than what we’ve thrown at it here. The same is true for the FakeItEasy component. Both of these components are well used, well maintained open source projects. You can find lots of documentation and examples for both. Or you can use any number of other DI containers and mocking frameworks to achieve equivalent results.</p>
 
@@ -186,15 +238,13 @@ public void GetCurrentEmployeeTest() {
     <content type="html"><![CDATA[<p>In this post we take a look at dependency injection (DI). Target audience is competent .NET developers, C# specifically (but VB’ers who read C# can benefit just as much), who’ve heard of DI but haven’t gotten around to figuring out how it fits in their day to day.</p>
 
 <!-- more -->
-
-
-<h3>What is Dependency Injection</h3>
+<p>### What is Dependency Injection</p>
 
 <p>The first question that we need to address is: What is it that DI does for us? What problem is being solved? DI is about coupling; the degree to which program unit refers to other units. In .NET the units we’re typically worried about are classes, interfaces, components, and assemblies. Dependency injection facilitates reduction these interdependencies. Are DI patterns a silver bullet? Of course not. You can always write bad code regardless of patterns. That being said, if you’re already writing decent code and have good fundamentals, but are not using DI patterns, you’ve got the opportunity to take a leap forward.</p>
 
 <p>How does DI reduce help reduce coupling? The easiest way to describe it is by diving directly into an example.</p>
 
-<h3>Example Scenario</h3>
+<h3 id="example-scenario">Example Scenario</h3>
 
 <p>We’ll work on a hypothetical in-house app where the Windows AD authenticates employees, and their Windows username is used to index a database with Employee information. It’s pretty common to see stuff like this happening in-house with line of business applications.</p>
 
@@ -202,68 +252,133 @@ public void GetCurrentEmployeeTest() {
 
 <p>Here’s the base level example program with no consideration for dependency injection:</p>
 
-<pre><code class="C#">class Program {
-    static void Main(string[] args) {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+<a href="#n26" name="n26">26</a>
+<a href="#n27" name="n27">27</a>
+<a href="#n28" name="n28">28</a>
+<a href="#n29" name="n29">29</a>
+<strong><a href="#n30" name="n30">30</a></strong>
+<a href="#n31" name="n31">31</a>
+<a href="#n32" name="n32">32</a>
+<a href="#n33" name="n33">33</a>
+<a href="#n34" name="n34">34</a>
+<a href="#n35" name="n35">35</a>
+<a href="#n36" name="n36">36</a>
+<a href="#n37" name="n37">37</a>
+<a href="#n38" name="n38">38</a>
+<a href="#n39" name="n39">39</a>
+<strong><a href="#n40" name="n40">40</a></strong>
+<a href="#n41" name="n41">41</a>
+<a href="#n42" name="n42">42</a>
+<a href="#n43" name="n43">43</a>
+<a href="#n44" name="n44">44</a>
+<a href="#n45" name="n45">45</a>
+<a href="#n46" name="n46">46</a>
+<a href="#n47" name="n47">47</a>
+<a href="#n48" name="n48">48</a>
+<a href="#n49" name="n49">49</a>
+<strong><a href="#n50" name="n50">50</a></strong>
+<a href="#n51" name="n51">51</a>
+<a href="#n52" name="n52">52</a>
+<a href="#n53" name="n53">53</a>
+<a href="#n54" name="n54">54</a>
+<a href="#n55" name="n55">55</a>
+<a href="#n56" name="n56">56</a>
+<a href="#n57" name="n57">57</a>
+<a href="#n58" name="n58">58</a>
+<a href="#n59" name="n59">59</a>
+<strong><a href="#n60" name="n60">60</a></strong>
+<a href="#n61" name="n61">61</a>
+</pre></td>
+  <td class="code"><pre><span class="type">class</span> <span class="class">Program</span> {
+    <span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {
 
-        // ** Without using an DI Container approach **
+        <span class="comment">// ** Without using an DI Container approach **</span>
 
-        // Create a new provider aka data access layer
-        var dal = new DevDataProvider();
+        <span class="comment">// Create a new provider aka data access layer</span>
+        var dal = <span class="keyword">new</span> DevDataProvider();
 
-        // New up an employee that's supposed to represent the currently logged in user
-        var e = new Employee() {
-            WindowsUsername = "thanos\\efvincent",
-            EmployeeId = "0001",
-            FName = "Eric",
-            LName = "Vincent"
+        <span class="comment">// New up an employee that's supposed to represent the currently logged in user</span>
+        var e = <span class="keyword">new</span> Employee() {
+            WindowsUsername = <span class="string"><span class="delimiter">&quot;</span><span class="content">thanos</span><span class="char">\\</span><span class="content">efvincent</span><span class="delimiter">&quot;</span></span>,
+            EmployeeId = <span class="string"><span class="delimiter">&quot;</span><span class="content">0001</span><span class="delimiter">&quot;</span></span>,
+            FName = <span class="string"><span class="delimiter">&quot;</span><span class="content">Eric</span><span class="delimiter">&quot;</span></span>,
+            LName = <span class="string"><span class="delimiter">&quot;</span><span class="content">Vincent</span><span class="delimiter">&quot;</span></span>
         };
 
-        // Add it to the data access layer
+        <span class="comment">// Add it to the data access layer</span>
         dal.AddEmployee(e);
 
-        // See if the dal can find the current user
+        <span class="comment">// See if the dal can find the current user</span>
         e = dal.GetCurrentEmployee();
 
         Console.WriteLine(
-            "Current logged in person is: {0}", e == null ? "unknown" : e.FName);
+            <span class="string"><span class="delimiter">&quot;</span><span class="content">Current logged in person is: {0}</span><span class="delimiter">&quot;</span></span>, e == <span class="predefined-constant">null</span> ? <span class="string"><span class="delimiter">&quot;</span><span class="content">unknown</span><span class="delimiter">&quot;</span></span> : e.FName);
 
-        // End
-        Console.Write("Press any key...");
-        Console.ReadKey(true);
+        <span class="comment">// End</span>
+        Console.Write(<span class="string"><span class="delimiter">&quot;</span><span class="content">Press any key...</span><span class="delimiter">&quot;</span></span>);
+        Console.ReadKey(<span class="predefined-constant">true</span>);
 
     }
 }
 
-public class DevDataProvider {
-    private static readonly List&lt;Employee&gt; EmployeeStore = new List&lt;Employee&gt;();
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DevDataProvider</span> {
+    <span class="directive">private</span> <span class="directive">static</span> readonly <span class="predefined-type">List</span>&lt;Employee&gt; EmployeeStore = <span class="keyword">new</span> <span class="predefined-type">List</span>&lt;Employee&gt;();
 
-    public Employee GetCurrentEmployee() {
+    <span class="directive">public</span> Employee GetCurrentEmployee() {
         var emp = EmployeeStore.FirstOrDefault(
             e =&gt; e.WindowsUsername.Equals(GetCurrentUserName(), StringComparison.OrdinalIgnoreCase));
-        return emp;
+        <span class="keyword">return</span> emp;
     }
 
-    public void AddEmployee(Employee e) {
+    <span class="directive">public</span> <span class="type">void</span> AddEmployee(Employee e) {
         EmployeeStore.Add(e);
     }
 
-    public IQueryable&lt;Employee&gt; Employees() {
-        return EmployeeStore.AsQueryable();
+    <span class="directive">public</span> IQueryable&lt;Employee&gt; Employees() {
+        <span class="keyword">return</span> EmployeeStore.AsQueryable();
     }
 
-    private static string GetCurrentUserName() {
+    <span class="directive">private</span> <span class="directive">static</span> string GetCurrentUserName() {
         var wu = WindowsIdentity.GetCurrent();
-        return wu == null ? string.Empty : wu.Name;
+        <span class="keyword">return</span> wu == <span class="predefined-constant">null</span> ? string.Empty : wu.Name;
     }
 }
 
-public class Employee {
-    public string WindowsUsername { get; set; }
-    public string EmployeeId { get; set; }
-    public string FName { get; set; }
-    public string LName { get; set; }
+<span class="directive">public</span> <span class="type">class</span> <span class="class">Employee</span> {
+    <span class="directive">public</span> string WindowsUsername { get; set; }
+    <span class="directive">public</span> string EmployeeId { get; set; }
+    <span class="directive">public</span> string FName { get; set; }
+    <span class="directive">public</span> string LName { get; set; }
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>In Main() we new up the data access layer, create a new employee, and add it to our store using the data access layer. At line 21 we ask the data access layer to retrieve the employee record for the currently logged in user. Looks pretty typical, so how can IoC help? Let’s look at the coupling here – what classes are dependent on what other classes?</p>
 
@@ -275,164 +390,285 @@ public class Employee {
 
 <p>Next think about testability. In real life there are unit tests (there should be anyway). One reason why people find excuses not to unit test is because their code is difficult to test. In this example, if we want to test DevDataProvider.GetCurrentEmployee() we have to consider that under the covers it’s calling the Windows API to get the current username. This makes that method harder to than it needs to be.</p>
 
-<h3>Step One – Leveraging Interfaces</h3>
+<h3 id="step-one--leveraging-interfaces">Step One – Leveraging Interfaces</h3>
 
-<p>In this version, we’ve factored out an interface called IDataProvider, and one called IIdentService. The IDataProvider should be pretty obvious – but IIdentService? The idea here is to decouple from the Windows API itself. A developer should understand <em>everywhere </em>that the application makes contact with <em>any</em> external modules, including the operating system, and then consider what the repercussions of that contact are. In this example, coupling to the Windows API to get then logged in username so directly is undesirable. We want to use a <em>service</em> that would supply us with credentials. That way if we’re testing, we can create a fake service that provides a predictable answer, and is therefore easier to test.</p>
+<p>In this version, we’ve factored out an interface called IDataProvider, and one called IIdentService. The IDataProvider should be pretty obvious – but IIdentService? The idea here is to decouple from the Windows API itself. A developer should understand <em>everywhere _that the application makes contact with _any</em> external modules, including the operating system, and then consider what the repercussions of that contact are. In this example, coupling to the Windows API to get then logged in username so directly is undesirable. We want to use a <em>service</em> that would supply us with credentials. That way if we’re testing, we can create a fake service that provides a predictable answer, and is therefore easier to test.</p>
 
 <p>Coding to an interface also allows us to radically change the behavior of the service without having to alter its dependencies. If we move to a ASP.NET environment for example, we won’t want to use the current Windows Identity, we may want to use user information from the http context.</p>
 
-<pre><code class="C#">// Interface defining an identity service
-public interface IIdentService {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+<a href="#n26" name="n26">26</a>
+<a href="#n27" name="n27">27</a>
+<a href="#n28" name="n28">28</a>
+<a href="#n29" name="n29">29</a>
+<strong><a href="#n30" name="n30">30</a></strong>
+<a href="#n31" name="n31">31</a>
+<a href="#n32" name="n32">32</a>
+<a href="#n33" name="n33">33</a>
+<a href="#n34" name="n34">34</a>
+<a href="#n35" name="n35">35</a>
+<a href="#n36" name="n36">36</a>
+<a href="#n37" name="n37">37</a>
+<a href="#n38" name="n38">38</a>
+<a href="#n39" name="n39">39</a>
+<strong><a href="#n40" name="n40">40</a></strong>
+<a href="#n41" name="n41">41</a>
+<a href="#n42" name="n42">42</a>
+<a href="#n43" name="n43">43</a>
+<a href="#n44" name="n44">44</a>
+<a href="#n45" name="n45">45</a>
+<a href="#n46" name="n46">46</a>
+<a href="#n47" name="n47">47</a>
+</pre></td>
+  <td class="code"><pre><span class="comment">// Interface defining an identity service</span>
+<span class="directive">public</span> <span class="type">interface</span> <span class="class">IIdentService</span> {
     string GetCurrentUserName();
 }
 
-// Implementation of an identity service that returns the current
-// logged in windows username
-public class WindowsIdentService : IIdentService {
-    public string GetCurrentUserName() {
+<span class="comment">// Implementation of an identity service that returns the current</span>
+<span class="comment">// logged in windows username</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">WindowsIdentService</span> : IIdentService {
+    <span class="directive">public</span> string GetCurrentUserName() {
         var wu = WindowsIdentity.GetCurrent();
-        return wu == null ? string.Empty : wu.Name;
+        <span class="keyword">return</span> wu == <span class="predefined-constant">null</span> ? string.Empty : wu.Name;
     }
 }
 
-// Interface defining a data provider service
-public interface IDataProvider {
+<span class="comment">// Interface defining a data provider service</span>
+<span class="directive">public</span> <span class="type">interface</span> <span class="class">IDataProvider</span> {
     Employee GetCurrentEmployee();
-    void AddEmployee(Employee e);
+    <span class="type">void</span> AddEmployee(Employee e);
     IQueryable&lt;Employee&gt; Employees();
 }
 
-// Our development data provider now implements the interface
-public class DevDataProvider : IDataProvider {
-    private readonly IIdentService _identService;
-    private static readonly List&lt;Employee&gt; EmployeeStore = new List&lt;Employee&gt;();
+<span class="comment">// Our development data provider now implements the interface</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DevDataProvider</span> : IDataProvider {
+    <span class="directive">private</span> readonly IIdentService _identService;
+    <span class="directive">private</span> <span class="directive">static</span> readonly <span class="predefined-type">List</span>&lt;Employee&gt; EmployeeStore = <span class="keyword">new</span> <span class="predefined-type">List</span>&lt;Employee&gt;();
 
-    public DevDataProvider(IIdentService identService) {
-        if (identService == null) throw new ArgumentNullException("identService");
+    <span class="directive">public</span> DevDataProvider(IIdentService identService) {
+        <span class="keyword">if</span> (identService == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">identService</span><span class="delimiter">&quot;</span></span>);
         _identService = identService;
     }
 
-    public Employee GetCurrentEmployee() {
+    <span class="directive">public</span> Employee GetCurrentEmployee() {
         var emp = EmployeeStore.FirstOrDefault(
                         e =&gt; e.WindowsUsername.Equals(
                             _identService.GetCurrentUserName(),
                             StringComparison.OrdinalIgnoreCase));
-        return emp;
+        <span class="keyword">return</span> emp;
     }
 
-    public void AddEmployee(Employee e) {
+    <span class="directive">public</span> <span class="type">void</span> AddEmployee(Employee e) {
         EmployeeStore.Add(e);
     }
 
-    public IQueryable&lt;Employee&gt; Employees() {
-        return EmployeeStore.AsQueryable();
+    <span class="directive">public</span> IQueryable&lt;Employee&gt; Employees() {
+        <span class="keyword">return</span> EmployeeStore.AsQueryable();
     }
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
 <p>We’re part of the way to where we need to be. Altering DevDataProvider to depend on the IIdentService interface frees it from a hard dependency on a particular identity implementation. The downside is we’ve made creation of the DevDataProvider a bit more complex, as we need to supply the new instance with an IIdentityService instance.</p>
 
-<pre><code class="C#">// Create a new ident service, required for the DAL
-IIdentService identSvc = new WindowsIdentService();
+<p>~~~C#
+// Create a new ident service, required for the DAL
+IIdentService identSvc = new WindowsIdentService();</p>
 
-// Create a new DAL
+<p>// Create a new DAL
 IDataProvider dal = new DevDataProvider(identSvc);
-</code></pre>
+~~~</p>
 
 <p>The DevDataProvider now takes a constructor parameter of type IIdentService. This is where the <em>injection</em> in dependency injection comes from. DevDataProvider has a dependency, but instead of hard coding it into the definition of DevDataProvider, we inject it. There are different ways of injecting dependencies, but constructor injection is very popular and works well in many, or even most cases.</p>
 
 <p>The complexity of constructing instances increases when we add a simple logging service which logs information or errors messages.</p>
 
-<pre><code class="C#">// Interface defining a logging service
+<p>~~~C#
+// Interface defining a logging service
 public interface ILogService {
     void LogInfo(string msg, params object[] args);
     void LogError(string msg, params object[] args);
-}
+}</p>
 
-// Implementation of a console logging service
+<p>// Implementation of a console logging service
 public class ConsoleLogger : ILogService {
     public void LogInfo(string msg, params object[] args) {
         Console.WriteLine(
-            "{0} INFO: {1}", DateTime.Now,
+            “{0} INFO: {1}”, DateTime.Now,
             string.Format(msg, args));
-    }
+    }</p>
 
-    public void LogError(string msg, params object[] args) {
-        Console.WriteLine(
-            "{0} ERROR: {1}", DateTime.Now,
-            string.Format(msg, args));
-    }
-}
+<pre><code>public void LogError(string msg, params object[] args) {
+    Console.WriteLine(
+        "{0} ERROR: {1}", DateTime.Now,
+        string.Format(msg, args));
+} } ~~~
 </code></pre>
 
 <p>The ILogService is implemented by a simple console logger. Now both the WindowsIdentService and the DevDataProvider can leverage the logger. They’re both modified to have ILogService instance injected via their respective constructors.</p>
 
-<pre><code class="C#">// Implementation of an identity service that returns the current
-// logged in windows username
-public class WindowsIdentService : IIdentService {
-    private readonly ILogService _logSvc;
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+<a href="#n26" name="n26">26</a>
+<a href="#n27" name="n27">27</a>
+<a href="#n28" name="n28">28</a>
+<a href="#n29" name="n29">29</a>
+<strong><a href="#n30" name="n30">30</a></strong>
+<a href="#n31" name="n31">31</a>
+<a href="#n32" name="n32">32</a>
+<a href="#n33" name="n33">33</a>
+<a href="#n34" name="n34">34</a>
+<a href="#n35" name="n35">35</a>
+<a href="#n36" name="n36">36</a>
+<a href="#n37" name="n37">37</a>
+<a href="#n38" name="n38">38</a>
+<a href="#n39" name="n39">39</a>
+<strong><a href="#n40" name="n40">40</a></strong>
+<a href="#n41" name="n41">41</a>
+<a href="#n42" name="n42">42</a>
+<a href="#n43" name="n43">43</a>
+<a href="#n44" name="n44">44</a>
+<a href="#n45" name="n45">45</a>
+<a href="#n46" name="n46">46</a>
+<a href="#n47" name="n47">47</a>
+<a href="#n48" name="n48">48</a>
+<a href="#n49" name="n49">49</a>
+</pre></td>
+  <td class="code"><pre><span class="comment">// Implementation of an identity service that returns the current</span>
+<span class="comment">// logged in windows username</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">WindowsIdentService</span> : IIdentService {
+    <span class="directive">private</span> readonly ILogService _logSvc;
 
-    public WindowsIdentService(ILogService logSvc) {
-        if (logSvc == null) throw new ArgumentNullException("logSvc");
+    <span class="directive">public</span> WindowsIdentService(ILogService logSvc) {
+        <span class="keyword">if</span> (logSvc == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">logSvc</span><span class="delimiter">&quot;</span></span>);
         _logSvc = logSvc;
     }
 
-    public string GetCurrentUserName() {
+    <span class="directive">public</span> string GetCurrentUserName() {
         var wu = WindowsIdentity.GetCurrent();
-        var un = wu == null ? string.Empty : wu.Name;
-        _logSvc.LogInfo("Identified current user as: {0}", un);
-        return un;
+        var un = wu == <span class="predefined-constant">null</span> ? string.Empty : wu.Name;
+        _logSvc.LogInfo(<span class="string"><span class="delimiter">&quot;</span><span class="content">Identified current user as: {0}</span><span class="delimiter">&quot;</span></span>, un);
+        <span class="keyword">return</span> un;
     }
 }
 
-// Our development data provider now implements the interface
-public class DevDataProvider : IDataProvider {
-    private readonly IIdentService _identService;
-    private readonly ILogService _logSvc;
-    private static readonly List&lt;Employee&gt; EmployeeStore = new List&lt;Employee&gt;();
+<span class="comment">// Our development data provider now implements the interface</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DevDataProvider</span> : IDataProvider {
+    <span class="directive">private</span> readonly IIdentService _identService;
+    <span class="directive">private</span> readonly ILogService _logSvc;
+    <span class="directive">private</span> <span class="directive">static</span> readonly <span class="predefined-type">List</span>&lt;Employee&gt; EmployeeStore = <span class="keyword">new</span> <span class="predefined-type">List</span>&lt;Employee&gt;();
 
-    public DevDataProvider(IIdentService identService, ILogService logSvc) {
-        if (identService == null) throw new ArgumentNullException("identService");
-        if (logSvc == null) throw new ArgumentNullException("logSvc");
+    <span class="directive">public</span> DevDataProvider(IIdentService identService, ILogService logSvc) {
+        <span class="keyword">if</span> (identService == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">identService</span><span class="delimiter">&quot;</span></span>);
+        <span class="keyword">if</span> (logSvc == <span class="predefined-constant">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string"><span class="delimiter">&quot;</span><span class="content">logSvc</span><span class="delimiter">&quot;</span></span>);
         _identService = identService;
         _logSvc = logSvc;
     }
 
-    public Employee GetCurrentEmployee() {
+    <span class="directive">public</span> Employee GetCurrentEmployee() {
         var un = _identService.GetCurrentUserName();
         var emp = EmployeeStore.FirstOrDefault(
                         e =&gt; e.WindowsUsername.Equals(un,
                             StringComparison.OrdinalIgnoreCase));
-        if (emp == null) _logSvc.LogInfo("Current employee {0} not found", un);
-        return emp;
+        <span class="keyword">if</span> (emp == <span class="predefined-constant">null</span>) _logSvc.LogInfo(<span class="string"><span class="delimiter">&quot;</span><span class="content">Current employee {0} not found</span><span class="delimiter">&quot;</span></span>, un);
+        <span class="keyword">return</span> emp;
     }
 
-    public void AddEmployee(Employee e) {
+    <span class="directive">public</span> <span class="type">void</span> AddEmployee(Employee e) {
         EmployeeStore.Add(e);
-        _logSvc.LogInfo("Added employee with id {0}", e.EmployeeId);
+        _logSvc.LogInfo(<span class="string"><span class="delimiter">&quot;</span><span class="content">Added employee with id {0}</span><span class="delimiter">&quot;</span></span>, e.EmployeeId);
     }
 
-    public IQueryable&lt;Employee&gt; Employees() {
-        return EmployeeStore.AsQueryable();
+    <span class="directive">public</span> IQueryable&lt;Employee&gt; Employees() {
+        <span class="keyword">return</span> EmployeeStore.AsQueryable();
     }
 }
-</code></pre>
+</pre></td>
+</tr></table>
+</div>
 
-<p>Now the services are getting more robust and they&rsquo;re not tightly coupled to each other, they refer only to interfaces of the services they depend on. Main() however, where construction is going on, is getting messy.</p>
+<p>Now the services are getting more robust and they’re not tightly coupled to each other, they refer only to interfaces of the services they depend on. Main() however, where construction is going on, is getting messy.</p>
 
-<pre><code class="C#">static void Main(string[] args) {
+<div><table class="CodeRay"><tr>
+  <td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+</pre></td>
+  <td class="code"><pre><span class="directive">static</span> <span class="type">void</span> Main(string<span class="type">[]</span> args) {
 
-    // ** Without using an DI Container approach **
+    <span class="comment">// ** Without using an DI Container approach **</span>
 
-    // Create a new logging service, required for uh.. everything
-    ILogService consoleLog = new ConsoleLogger();
+    <span class="comment">// Create a new logging service, required for uh.. everything</span>
+    ILogService consoleLog = <span class="keyword">new</span> ConsoleLogger();
 
-    // Create a new ident service, required for the DAL
-    IIdentService identSvc = new WindowsIdentService(consoleLog);
+    <span class="comment">// Create a new ident service, required for the DAL</span>
+    IIdentService identSvc = <span class="keyword">new</span> WindowsIdentService(consoleLog);
 
-    // Create a new DAL
-    IDataProvider dal = new DevDataProvider(identSvc, consoleLog);
-</code></pre>
+    <span class="comment">// Create a new DAL</span>
+    IDataProvider dal = <span class="keyword">new</span> DevDataProvider(identSvc, consoleLog);
+</pre></td>
+</tr></table>
+</div>
 
 <p>Finally we’re at the point where we can see the benefit of an dependency injection container. One thing about DI containers is that they’re already written. Several mature, robust, open-source DI containers exist. We’ll use AutoFac, because that’s what I’ve been using lately. We include <a href="http://www.nuget.org/List/Packages/Autofac">AutoFac</a> using <a href="http://www.nuget.org">NuGet</a>.</p>
 
@@ -463,7 +699,7 @@ static void Main(string[] args) {
 
 <p>We’ve created a static instance of IContainer (an AutoFac DI container). When we start the app we configure the container, which fundamentally consists of mapping the interfaces to concrete types that will be injected. For example, line 14 specifies that when there’s a need for an instance of ILogService, we will create an instance of ConsoleLogger. It further says that the DI container should use a SingleInstance() of ConsoleLogger. This has the effect of making ConsoleLogger a singleton. In our example, both the WindowsIdentService and the DevDataProvider will be handed the same instance of ConsoleLogger.</p>
 
-<p>The magic happens when we call Container.Resolve<IDataProvider>(). The container determines what concrete class to create, and it looks for any dependencies in the constructor. It will see that to build a DevDataProvider, it needs an ILogService and an IWindowsIdentService, it will recursively resolve those as well.</p>
+<p>The magic happens when we call Container.Resolve<idataprovider>(). The container determines what concrete class to create, and it looks for any dependencies in the constructor. It will see that to build a DevDataProvider, it needs an ILogService and an IWindowsIdentService, it will recursively resolve those as well.</idataprovider></p>
 
 <p>These are the basics of dependency injection. Even in this simple example, it should be obvious that the components and classes that we can create can be designed with very low coupling and cohesion using this technique. There are anti-patterns for using DI as well. You should endeavor to practice this technique, do research and learn the most effective uses; there’s plenty of material out there.</p>
 

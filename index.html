@@ -9,8 +9,8 @@
   <meta name="author" content="Eric F. Vincent">
 
   
-  <meta name="description" content="For my shiney new blog I decided to go full hipster and host on GitHub. This means that
-the entire site, source code as well as the blog website &hellip;">
+  <meta name="description" content="Some months ago a co-worker asked if there were a way to buffer the input on a text box
+so that the handler would not be called more than every X &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -84,6 +84,48 @@ the entire site, source code as well as the blog website &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-08-18T01:28:33-04:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>1:28 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Some months ago a co-worker asked if there were a way to buffer the input on a text box
+so that the handler would not be called more than every X milliseconds. His app was doing
+the fairly typical chore of searching through a long list as the user types into a
+search box. Firing a <code>digest</code> (that’s Angular’s re-bind and re-render loop) for each
+keystroke causes a jumpy, jittery refresh storm.</p>
+
+<p>What he was looking for is commonly referred to as to <em>debounce</em> or <em>throttle</em> a
+function. There are many implementations around, but his question was specifically
+about debounce in the context of Angular, preferably as a directive.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/08/18/debounce-as-a-directive/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a></h1>
     
     
@@ -102,12 +144,11 @@ the entire site, source code as well as the blog website &hellip;">
 
   <div class="entry-content"><p>For my shiney new blog I decided to go full hipster and host on GitHub. This means that
 the entire site, source code as well as the blog website itself, can be seen at
-<a href="https://github.com/efvincent/efvincent.github.io">my blog&rsquo;s repository</a>. Of course all of this will be painfully
-uncool by this time next year. But for the time being it&rsquo;s fun and the tech is relevant.</p>
+<a href="https://github.com/efvincent/efvincent.github.io">my blog’s repository</a>. Of course all of this will be painfully
+uncool by this time next year. But for the time being it’s fun and the tech is relevant.</p>
 
 <p>Dig in if you want to see the ins and outs of setting all this up on a Windows workstation,
-because Windows is so far out of fashion stuff is starting to not work on it by default. Karma.</p>
-
+because Windows is so far out of fashion stuff is starting to not work on it by default. Karma.
 </div>
   
   
@@ -140,13 +181,13 @@ because Windows is so far out of fashion stuff is starting to not work on it by 
   </header>
 
 
-  <div class="entry-content"><p>I&rsquo;ve moved my blog from WordPress on my own personal site to GitHub, because &hellip; GitHub of course. <em>No One</em> is going
-to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it&rsquo;s time
+  <div class="entry-content"><p>I’ve moved my blog from WordPress on my own personal site to GitHub, because … GitHub of course. <em>No One</em> is going
+to miss my other blog. It had a couple of what I thought were interesting posts on F# and dependency injection in C#. But it’s time
 for a fresh start.</p>
 
 <p>Expect posts on JavaScript and front end development for a little while. After a career spent designing relational
-databases for finance, insurance and other LOB domains, I&rsquo;ve been working on SPA style front end enterprise applications for
-a couple of years. And it&rsquo;s fun. I may actually have a couple of interesting things to say. We&rsquo;ll see.</p>
+databases for finance, insurance and other LOB domains, I’ve been working on SPA style front end enterprise applications for
+a couple of years. And it’s fun. I may actually have a couple of interesting things to say. We’ll see.</p>
 </div>
   
   
@@ -175,10 +216,8 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
   </header>
 
 
-  <div class="entry-content"><h2>Constructor Injection</h2>
-
-<p>The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are <em>injected</em> into the class by some external mechanism, as opposed to being “newed up” directly. The most common form of DI is constructor injection, where a class defines a constructor that has as its parameters the external dependencies required by the class.</p>
-
+  <div class="entry-content"><h2 id="constructor-injection">Constructor Injection</h2>
+<p>The idea of dependency injection is that classes are defined such that any dependencies on other classes or services, are <em>injected</em> into the class by some external mechanism, as opposed to being “newed up” directly. The most common form of DI is constructor injection, where a class defines a constructor that has as its parameters the external dependencies required by the class.
 </div>
   
   
@@ -213,7 +252,7 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
 
   <div class="entry-content"><p><a href="http://blog.efvincent.com/practical-di-101">My last post</a> provided a brief introduction into dependency injection. To review, the example included a data provider for Employee objects, which included a feature to return the object corresponding to the currently logged in user. In the end the following interfaces were defined:</p>
 
-<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<Employee> as a data store.</p>
+<p><strong>IDataProvider</strong> – the function is obvious from the name. One implementation, the DevDataProvider, uses a static List<employee> as a data store.</employee></p>
 
 <p><strong>IIdentityService</strong> – describes a service that supplies the <em>current</em> identity. What current is depends on the implementation of course. A concrete WindowsIdentService defines current as the currently logged in Windows user. The TestIdentService implementation always returned the same username, which is useful for testing as we will see.</p>
 
@@ -323,8 +362,7 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
 
   <div class="entry-content"><p><strong>Updated</strong>: see the <a href="http://blog.efvincent.com/nuget-geeky-goodness/">NuGet post</a></p>
 
-<p>The 2010 PDC was a few months ago. There was plenty of interesting and exciting tech news coming from the conference, but the one session that really sparked something with me was Scott Hanselman’s Presentation, <em><a href="http://www.hanselman.com/blog/PDC10BuildingABlogWithMicrosoftUnnamedPackageOfWebLove.aspx">ASP.NET + Packaging + Open Source = Crazy Delicious</a></em>. Officially, I was mining PDC for Azure and Windows Identity Foundation material for the project I was (and still am) working on. But I <em>love</em> Hanselman’s presentation style; is stuff is always entertaining, stimulating, and <strong>packed</strong> with information. This one was no exception.</p>
-
+<p>The 2010 PDC was a few months ago. There was plenty of interesting and exciting tech news coming from the conference, but the one session that really sparked something with me was Scott Hanselman’s Presentation, <em><a href="http://www.hanselman.com/blog/PDC10BuildingABlogWithMicrosoftUnnamedPackageOfWebLove.aspx">ASP.NET + Packaging + Open Source = Crazy Delicious</a></em>. Officially, I was mining PDC for Azure and Windows Identity Foundation material for the project I was (and still am) working on. But I <em>love</em> Hanselman’s presentation style; is stuff is always entertaining, stimulating, and <strong>packed</strong> with information. This one was no exception.
 </div>
   
   
@@ -361,7 +399,7 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
 
 <p><a href="http://vimeo.com/14339850">PCA DE CMP August 2010</a> from <a href="http://vimeo.com/efvincent">Eric Vincent</a> on <a href="http://vimeo.com">Vimeo</a>.</p>
 
-<p> </div>
+<p></div>
   
   
     <footer>
@@ -393,47 +431,13 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
   </header>
 
 
-  <div class="entry-content"><p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a &ldquo;first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
+  <div class="entry-content"><p>As C# has evolved it has acquired more and more of what some people refer to has functional programming features and constructs. One such concept is the idea that a function is a “first class” value. This is a fancy way of saying that functions are values that can be passed to and returned from other functions. A function that operates on other functions is called a high-order function.</p>
 
 </div>
   
   
     <footer>
       <a rel="full-article" href="/blog/2010/05/03/combinators-in-c/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/04/27/parsing-json-using-f/">Parsing Json Using F#</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2010-04-27T14:29:49-04:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2010</span></span> <span class='time'>2:29 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I was in one of those curious moods the other day, and decided to check out the API for the service behind my RSS reader, <a href="http://www.newsgator.com/Individuals/FeedDemon/Default.aspx">FeedDemon</a>. I like this reader because it keeps my subscriptions and read / unread data synchronized across machines and my iPhone via an app called <a href="http://netnewswireapp.com/iphone/">NetNewsWire</a>.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2010/04/27/parsing-json-using-f/">Read on &rarr;</a>
     </footer>
   
 
@@ -455,6 +459,10 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
       </li>
     
@@ -468,10 +476,6 @@ a couple of years. And it&rsquo;s fun. I may actually have a couple of interesti
     
       <li class="post">
         <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
       </li>
     
   </ul>

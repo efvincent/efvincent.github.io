@@ -96,267 +96,261 @@
   </header>
 
 
-<div class="entry-content"><p>My last couple of blog entries were ostensibly about lambda functions (<a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last one</a>, <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">one before</a>). With these ideas, or a general comfort level with lambdas and the Action&lt;> and Func&lt;> delegate types in the back of your mind, consider this.</p>
+<div class="entry-content"><p>My last couple of blog entries were ostensibly about lambda functions (<a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas/">last one</a>, <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">one before</a>). With these ideas, or a general comfort level with lambdas and the Action&lt;&gt; and Func&lt;&gt; delegate types in the back of your mind, consider this.</p>
 
 <!-- more -->
-
 
 <p>I was working on a project where the development team was instructed to implement a retry logic into our data access layer. In other words, if we experience database connectivity problems, retry the operation as seems reasonable.</p>
 
 <p>Here’s some code we’re going to use as a basis for the conversation:</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">class</span> <span class="nc">Program</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">Retry01</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Retry01</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="c1">// Iterate through the directories on the C:\ drive</span>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.1d</span><span class="p">);</span>
-</span><span class='line'>            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">static</span> <span class="n">Random</span> <span class="n">_rnd</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">.</span><span class="n">Millisecond</span><span class="p">);</span>
-</span><span class='line'>    <span class="c1">/// &lt;summary&gt;</span>
-</span><span class='line'>    <span class="c1">/// Occasionally throw an exception</span>
-</span><span class='line'>    <span class="c1">/// &lt;/summary&gt;</span>
-</span><span class='line'>    <span class="c1">/// &lt;param name=&quot;freq&quot;&gt;Percentage (as a fraction) of the time to</span>
-</span><span class='line'>    <span class="c1">/// throw an exception. Uses a random number generator, so</span>
-</span><span class='line'>    <span class="c1">/// this is not an exact measure&lt;/param&gt;</span>
-</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">OccasionallyThrow</span><span class="p">(</span><span class="kt">double</span> <span class="n">freq</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">_rnd</span><span class="p">.</span><span class="n">NextDouble</span><span class="p">()</span> <span class="p">&lt;=</span> <span class="n">freq</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">&quot;An occasional exception&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">class</span> <span class="nc">Program</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">
+</span><span class="line">        <span class="k">try</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">Retry01</span><span class="p">();</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Press any key...&quot;</span><span class="p">);</span>
+</span><span class="line">        <span class="n">Console</span><span class="p">.</span><span class="n">ReadKey</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">static</span> <span class="k">void</span> <span class="nf">Retry01</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">        <span class="c1">// Iterate through the directories on the C:\ drive</span>
+</span><span class="line">        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.1d</span><span class="p">);</span>
+</span><span class="line">            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">static</span> <span class="n">Random</span> <span class="n">_rnd</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">.</span><span class="n">Millisecond</span><span class="p">);</span>
+</span><span class="line">    <span class="c1">/// &lt;summary&gt;</span>
+</span><span class="line">    <span class="c1">/// Occasionally throw an exception</span>
+</span><span class="line">    <span class="c1">/// &lt;/summary&gt;</span>
+</span><span class="line">    <span class="c1">/// &lt;param name=&quot;freq&quot;&gt;Percentage (as a fraction) of the time to</span>
+</span><span class="line">    <span class="c1">/// throw an exception. Uses a random number generator, so</span>
+</span><span class="line">    <span class="c1">/// this is not an exact measure&lt;/param&gt;</span>
+</span><span class="line">    <span class="k">static</span> <span class="k">void</span> <span class="nf">OccasionallyThrow</span><span class="p">(</span><span class="kt">double</span> <span class="n">freq</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">if</span> <span class="p">(</span><span class="n">_rnd</span><span class="p">.</span><span class="n">NextDouble</span><span class="p">()</span> <span class="p">&lt;=</span> <span class="n">freq</span><span class="p">)</span>
+</span><span class="line">            <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">&quot;An occasional exception&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>We’ve got a method, <code>OccasionallyThrow(freq)</code> that, occasionally throws an exception (duh). We’ve got a method that iterates through directories on the C:\ drive and pretty much can’t get through it without throwing.</p>
 
 <p>So first pass, let’s fix <code>Retry01()</code> so it actually retries.</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry01</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="c1">// Iterate through the directories on the C:\ drive</span>
-</span><span class='line'>    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">retryCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>        <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">do</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>                <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.25d</span><span class="p">);</span>
-</span><span class='line'>                <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>                <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">ex</span> <span class="k">is</span> <span class="n">InvalidOperationException</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="k">if</span> <span class="p">(</span><span class="n">retryCount</span><span class="p">++</span> <span class="p">&lt;</span> <span class="m">3</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                        <span class="c1">// can try again. Under the limit</span>
-</span><span class='line'>                        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Caught exception, retry #{0}&quot;</span><span class="p">,</span> <span class="n">retryCount</span><span class="p">);</span>
-</span><span class='line'>                        <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>                    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>                        <span class="c1">// retried too many times already</span>
-</span><span class='line'>                        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exceeded retry count. Throwing.&quot;</span><span class="p">);</span>
-</span><span class='line'>                        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>                    <span class="p">}</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry01</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="c1">// Iterate through the directories on the C:\ drive</span>
+</span><span class="line">    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">
+</span><span class="line">        <span class="kt">int</span> <span class="n">retryCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class="line">        <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">        <span class="k">do</span> <span class="p">{</span>
+</span><span class="line">            <span class="k">try</span> <span class="p">{</span>
+</span><span class="line">
+</span><span class="line">                <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.25d</span><span class="p">);</span>
+</span><span class="line">                <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">                <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">            <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                <span class="k">if</span> <span class="p">(</span><span class="n">ex</span> <span class="k">is</span> <span class="n">InvalidOperationException</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                    <span class="k">if</span> <span class="p">(</span><span class="n">retryCount</span><span class="p">++</span> <span class="p">&lt;</span> <span class="m">3</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                        <span class="c1">// can try again. Under the limit</span>
+</span><span class="line">                        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Caught exception, retry #{0}&quot;</span><span class="p">,</span> <span class="n">retryCount</span><span class="p">);</span>
+</span><span class="line">                        <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">                    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">                        <span class="c1">// retried too many times already</span>
+</span><span class="line">                        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exceeded retry count. Throwing.&quot;</span><span class="p">);</span>
+</span><span class="line">                        <span class="k">throw</span><span class="p">;</span>
+</span><span class="line">                    <span class="p">}</span>
+</span><span class="line">                <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>Yikes. That’s a bunch of code. Assuming we want to make this construct generally available, some refactoring is in order. Worse, the boilerplate code that manages retries <em>surrounds</em> the code we want to apply it to, at lines 10 and 11 of a 30 line block of code. This is a similar problem to the one described in <a href="http://blog.efvincent.com/c-nuts-and-bolts-lambdas02">my last post</a>, so you may see where this is going. Here’s one approach to solving the problem.</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry</span><span class="p">(</span><span class="n">Action</span> <span class="n">action</span><span class="p">,</span> <span class="kt">int</span> <span class="n">maxRetries</span> <span class="p">=</span> <span class="m">3</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">retryCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">do</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">ex</span> <span class="k">is</span> <span class="n">InvalidOperationException</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">retryCount</span><span class="p">++</span> <span class="p">&lt;</span> <span class="n">maxRetries</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="c1">// can try again. Under the limit</span>
-</span><span class='line'>                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Caught exception, retry #{0}&quot;</span><span class="p">,</span> <span class="n">retryCount</span><span class="p">);</span>
-</span><span class='line'>                    <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="c1">// retried too many times already</span>
-</span><span class='line'>                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exceeded retry count. Throwing.&quot;</span><span class="p">);</span>
-</span><span class='line'>                    <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry02</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Retry</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.25d</span><span class="p">);</span>
-</span><span class='line'>            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">},</span> <span class="m">3</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry</span><span class="p">(</span><span class="n">Action</span> <span class="n">action</span><span class="p">,</span> <span class="kt">int</span> <span class="n">maxRetries</span> <span class="p">=</span> <span class="m">3</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">    <span class="kt">int</span> <span class="n">retryCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</span><span class="line">    <span class="kt">bool</span> <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">    <span class="k">do</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">try</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">action</span><span class="p">();</span>
+</span><span class="line">            <span class="n">done</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class="line">        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">            <span class="k">if</span> <span class="p">(</span><span class="n">ex</span> <span class="k">is</span> <span class="n">InvalidOperationException</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                <span class="k">if</span> <span class="p">(</span><span class="n">retryCount</span><span class="p">++</span> <span class="p">&lt;</span> <span class="n">maxRetries</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">                    <span class="c1">// can try again. Under the limit</span>
+</span><span class="line">                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Caught exception, retry #{0}&quot;</span><span class="p">,</span> <span class="n">retryCount</span><span class="p">);</span>
+</span><span class="line">                    <span class="n">done</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class="line">                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">                    <span class="c1">// retried too many times already</span>
+</span><span class="line">                    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exceeded retry count. Throwing.&quot;</span><span class="p">);</span>
+</span><span class="line">                    <span class="k">throw</span><span class="p">;</span>
+</span><span class="line">                <span class="p">}</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">while</span> <span class="p">(!</span><span class="n">done</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">Retry02</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">dir</span> <span class="k">in</span> <span class="n">Directory</span><span class="p">.</span><span class="n">EnumerateDirectories</span><span class="p">(</span><span class="s">&quot;C:\\&quot;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Retry</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">OccasionallyThrow</span><span class="p">(</span><span class="m">0.25d</span><span class="p">);</span>
+</span><span class="line">            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;dir: {0}&quot;</span><span class="p">,</span> <span class="n">dir</span><span class="p">);</span>
+</span><span class="line">        <span class="p">},</span> <span class="m">3</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
+<p>This approach solves many of the problems we’ve identified. The retry logic is encapsulated in a function that’s trivial to reuse. One point of interest here… if you’re not familiar with the syntax and techniques, it may look a bit strange. But it also should look a little familiar; consider the “using” block:</p>
 
-<p>This approach solves many of the problems we&rsquo;ve identified. The retry logic is encapsulated in a function that’s trivial to reuse. One point of interest here… if you’re not familiar with the syntax and techniques, it may look a bit strange. But it also should look a little familiar; consider the “using” block:</p>
-
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="kt">byte</span> <span class="n">someByte</span> <span class="p">=</span> <span class="m">100</span><span class="p">;</span>
-</span><span class='line'><span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;C:\\data.dat&quot;</span><span class="p">,</span> <span class="n">FileMode</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">byte</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">someByte</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
-</span><span class='line'>        <span class="n">stream</span><span class="p">.</span><span class="n">WriteByte</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="kt">byte</span> <span class="n">someByte</span> <span class="p">=</span> <span class="m">100</span><span class="p">;</span>
+</span><span class="line"><span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;C:\\data.dat&quot;</span><span class="p">,</span> <span class="n">FileMode</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">))</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">for</span> <span class="p">(</span><span class="kt">byte</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">someByte</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
+</span><span class="line">        <span class="n">stream</span><span class="p">.</span><span class="n">WriteByte</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>The C# using block has a similar pattern. There’s some construct (using), and then a block of code to which the construct applies. It has a similar feel to our Retry() solution. Hmmm… could we use the Retry() approach to write our own using?</p>
 
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='C#'><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="n">Using</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">disposableVar</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">usingBlock</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IDisposable</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">usingBlock</span><span class="p">(</span><span class="n">disposableVar</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">disposableVar</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="k">void</span> <span class="nf">UsingMyUsing</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">byte</span> <span class="n">someByte</span> <span class="p">=</span> <span class="m">100</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">Using</span><span class="p">(</span><span class="n">File</span><span class="p">.</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;C:\\data.dat&quot;</span><span class="p">,</span> <span class="n">FileMode</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">),</span> <span class="n">stream</span> <span class="p">=&gt;</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">byte</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">someByte</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
-</span><span class='line'>            <span class="n">stream</span><span class="p">.</span><span class="n">WriteByte</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">});</span>
-</span><span class='line'><span class="p">}</span>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="C#"><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="n">Using</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">disposableVar</span><span class="p">,</span> <span class="n">Action</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">usingBlock</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IDisposable</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">try</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">usingBlock</span><span class="p">(</span><span class="n">disposableVar</span><span class="p">);</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">disposableVar</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">static</span> <span class="k">void</span> <span class="nf">UsingMyUsing</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="line">    <span class="kt">byte</span> <span class="n">someByte</span> <span class="p">=</span> <span class="m">100</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="n">Using</span><span class="p">(</span><span class="n">File</span><span class="p">.</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;C:\\data.dat&quot;</span><span class="p">,</span> <span class="n">FileMode</span><span class="p">.</span><span class="n">CreateNew</span><span class="p">),</span> <span class="n">stream</span> <span class="p">=&gt;</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">for</span> <span class="p">(</span><span class="kt">byte</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">someByte</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
+</span><span class="line">            <span class="n">stream</span><span class="p">.</span><span class="n">WriteByte</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+</span><span class="line">    <span class="p">});</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
-
 
 <p>See that’s why I like coding so much… that’s definitely cool. It’s not exactly character for character like the using statement, but it’s pretty darn close (actually, mine is a couple of characters shorter). And it’s equivalent (at least it is superficially, I haven’t checked thoroughly, it’s almost 1am after all). It had to get a little fancier with the generics, but we’ve recreated a C# language construct.</p>
 
@@ -425,6 +419,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/18/debounce-as-a-directive/">Debounce as a Directive</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/15/Octopress-github-ruby-windows/">GitHubify(Blog)</a>
       </li>
     
@@ -438,10 +436,6 @@
     
       <li class="post">
         <a href="/blog/2011/05/27/di-mock/">A Taste of Dependency Injection, Testing, and Mocking</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/27/practical-di-101/">Practical Dependency Injection 101</a>
       </li>
     
   </ul>
