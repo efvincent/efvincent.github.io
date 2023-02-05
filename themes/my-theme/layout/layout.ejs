@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+  </head>
+  <body>
+    <%- partial('partial/header', {title: 'hello world', color:'#a02030'}) %>
+    <br>
+    <%- body %>
+    <hr>
+    <h3>Posts</h3>
+    <hr>
+    <ul>
+    <% site.posts.sort((a,b) => (a.date > b.date) ? 1 : -1).forEach(p => { %>
+      <li><a href=<%- url_for(p.path) %>><%- p.title %></a></li>
+    <% }); %>
+    </ul>
+    <br>
+    Footer!! copyright 2022 - EFVincent
+  </body>
+
+</html>

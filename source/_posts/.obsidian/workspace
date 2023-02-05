@@ -1,0 +1,134 @@
+{
+  "main": {
+    "id": "df4b76b82535d6e7",
+    "type": "split",
+    "children": [
+      {
+        "id": "4383a8ee590d1999",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "2009-08-18-concurrency-optimization-silverlight.md",
+            "mode": "source",
+            "source": false
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c719e78e7195cf22",
+    "type": "split",
+    "children": [
+      {
+        "id": "f8cecdac480124ce",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b64c156cd04c1ece",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "8c4229c2e6d04ac4",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "9f1f4f0b3cd3251c",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 508.5,
+    "collapsed": true
+  },
+  "right": {
+    "id": "2780c41e76f36dea",
+    "type": "split",
+    "children": [
+      {
+        "id": "609184b94f7f8e1a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "95d063aca2d35865",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "2009-08-18-concurrency-optimization-silverlight.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "e52f12e9b3de22b3",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "2009-08-18-concurrency-optimization-silverlight.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "5c14e9073549f861",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "a38aba23ca1abcb2",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "2009-08-18-concurrency-optimization-silverlight.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "4383a8ee590d1999",
+  "lastOpenFiles": []
+}
