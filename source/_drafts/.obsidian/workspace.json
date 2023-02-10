@@ -1,18 +1,22 @@
 {
   "main": {
-    "id": "df4b76b82535d6e7",
+    "id": "c4d007d2aeebd566",
     "type": "split",
     "children": [
       {
-        "id": "8d3a7c2b125f395a",
+        "id": "943276b7b3774ebc",
         "type": "tabs",
         "children": [
           {
-            "id": "072cac1a9c45adc6",
+            "id": "caa538a0d4026e52",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "230207 - Haskell Basics - Lists 01.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -21,15 +25,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "c719e78e7195cf22",
+    "id": "d776423c9d7e9624",
     "type": "split",
     "children": [
       {
-        "id": "f8cecdac480124ce",
+        "id": "d66d7cb2062e5d52",
         "type": "tabs",
         "children": [
           {
-            "id": "b64c156cd04c1ece",
+            "id": "6b47482b20c49a13",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -39,7 +43,7 @@
             }
           },
           {
-            "id": "8c4229c2e6d04ac4",
+            "id": "3b167324b92017ff",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -54,7 +58,7 @@
             }
           },
           {
-            "id": "9f1f4f0b3cd3251c",
+            "id": "1b33f352cbd59439",
             "type": "leaf",
             "state": {
               "type": "starred",
@@ -65,23 +69,23 @@
       }
     ],
     "direction": "horizontal",
-    "width": 508.5,
-    "collapsed": true
+    "width": 300
   },
   "right": {
-    "id": "2780c41e76f36dea",
+    "id": "fc4f74f39d86902f",
     "type": "split",
     "children": [
       {
-        "id": "609184b94f7f8e1a",
+        "id": "f4a9d1a31d45579c",
         "type": "tabs",
         "children": [
           {
-            "id": "95d063aca2d35865",
+            "id": "6bcd94ca31756fba",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
+                "file": "230207 - Haskell Basics - Lists 01.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -93,18 +97,19 @@
             }
           },
           {
-            "id": "e52f12e9b3de22b3",
+            "id": "12f4e2d2bd958ccd",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "230207 - Haskell Basics - Lists 01.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
             }
           },
           {
-            "id": "5c14e9073549f861",
+            "id": "22763f9afdb4dd6a",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -115,11 +120,13 @@
             }
           },
           {
-            "id": "a38aba23ca1abcb2",
+            "id": "edd9be449b5779cd",
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "230207 - Haskell Basics - Lists 01.md"
+              }
             }
           }
         ]
@@ -139,11 +146,8 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "072cac1a9c45adc6",
+  "active": "caa538a0d4026e52",
   "lastOpenFiles": [
-    "2023-02-06-Haskell-Basics-01.md",
-    "2023-02-05-A-Fresh-Start.md",
-    "2009-08-18-concurrency-optimization-silverlight.md",
-    "2022-07-28-Switching-to-Hexo.md"
+    "2009-08-18-concurrency-optimization-silverlight.md"
   ]
 }

@@ -2,9 +2,9 @@
 title: Haskell Basics - Functions 01
 categories:
   - haskell
-  - functional
-  - basics
 tags:
+  - basics
+  - functions
 date: 2023-02-06
 ---
 The syntax for function definition in Haskell is different from most other programming languages, especially mainstream programming languages. Let's take a look at a simple function.
@@ -54,7 +54,7 @@ mathy 8 4 :: Int
 You should be seeing the pattern here. Arrow `->` is actually a polymorphic type constructor, in some other languages called a generic type. Specifically it's a generic type in two type variables, the input (on the left of the arrow) and the output (on the right of the arrow). In C#, the type of anonymous functions is `Func<T,TReturn>`, a polymorphic type in two type variables, the first `T` is the type of input, and the second `TReturn` is the type of output. Java has a similar generic type for anonymous functions.
 
 ### Infix
-Haskell has the notion of _infix_ operators, and that's what `->` is, and _**infix**_ *polymorphic type constructor*. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.
+Haskell has the notion of _infix_ operators, and that's what `->` is, an _**infix**_ *polymorphic type constructor*. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.
 
 We could define our `mathy` function that's infix:
 ```haskell
