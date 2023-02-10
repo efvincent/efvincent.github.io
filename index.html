@@ -78,14 +78,14 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-Haskell-Basics-01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <article id="post-230207-Haskell-Basics-02" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/02/06/Haskell-Basics-01/" class="article-date">
-  <time class="dt-published" datetime="2023-02-06T05:00:00.000Z" itemprop="datePublished">2023-02-06</time>
+    <a href="/2023/02/07/230207-Haskell-Basics-02/" class="article-date">
+  <time class="dt-published" datetime="2023-02-07T07:00:00.000Z" itemprop="datePublished">2023-02-07</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/haskell/">haskell</a>►<a class="article-category-link" href="/categories/haskell/functional/">functional</a>►<a class="article-category-link" href="/categories/haskell/functional/basics/">basics</a>
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
   </div>
 
   </div>
@@ -96,7 +96,223 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/02/06/Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+      <a class="p-name article-title" href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Lists are one of the fundamental data structures in Haskell and many other programming languages. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">LISP</a> for example is a portmanteau of "LISt" and "Processing". The implementation of lists in Haskell is also a great way to look at a few different key features of the language that we'll discuss.</p>
+<h2 id="no-implicit-prelude">No Implicit Prelude</h2>
+<p>Let's do some "first principals" type experimentation. We'll create a module and tell Haskell not to import <code>Prelude</code>, which is the standard library. This will allow us to create our own list types and functions without conflicting with the ones from the standard library.</p>
+<p>If you want to follow along, I suggest following these <a href="/2023/02/07/230207-GHCup/" title="Install Haskell with GHCup">installation instructions</a>. Then you can create a file with the <code>*.hs</code> extension.</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGAUGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br></pre></td></tr></table></figure>
+<p>The first line is a compiler directive that excludes Prelude from being automatically imported. The other line defines a module. You can name your module any legal module name; alpha-numeric starting with a capital letter.</p>
+<h1 id="a-list-type">A List Type</h1>
+<p>We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only):</p>
+<figure class="highlight haskell"><figcaption><span>The Lst Type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>After excluding <code>Prelude</code> with the language extension, we add back in something called <code>Show</code>, which will make it easier to display values we're working with in the REPL; don't worry about the details for now.</p>
+<h2 id="algebraic-data-types">Algebraic Data Types</h2>
+<p>Let's break down the definition of the <code>Lst</code> type by first examining the <code>data</code> keyword, which indicates the beginning of a definition of a new <em>algebraic data type</em>. There are two kinds of algebraic data types - sum types and product types. What we've described above is a <em>sum type</em>. It's called sum because the total number of possible values is the sum of the number of values that each <em>data constructor</em> can produce. Let's look at a simple example:</p>
+<figure class="highlight haskell"><figcaption><span>Example Algebraic data type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Answer</span> </span></span><br><span class="line">  = <span class="type">Yes</span> </span><br><span class="line">  | <span class="type">No</span> </span><br><span class="line">  | <span class="type">LeaningTowards</span> <span class="type">Bool</span></span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>In this strange example, we have a data type <code>Answer</code> that has three data constructors. Two of them, <code>Yes</code> and <code>No</code>, take no parameters. The last one, <code>LeaningTowards</code> has a <code>Bool</code> parameter. This means the values, or terms, that inhabit the <code>Answer</code> data type are: <code>Yes</code>, <code>No</code>, <code>LeaningTowards True</code>, and <code>LeaningTowards False</code></p>
+<p>The total number of values inhabiting <code>Answer</code> is four, which is the <em>sum</em> of the number of terms that each data constructor can produce. <code>Yes</code> and <code>No</code> can only produce one value each since they have no parameters. Intuitively they behave like values and you'll soon see how in code they're used in places where values are used, but <code>LeaningTowards</code> has a parameter of type <code>Bool</code>, which defines two data constructors (<code>True</code> and <code>False</code>), bringing to total possible values of type <code>Answer</code> to four. Algebra! Sum!</p>
+<p>The other type of algebraic data type is the <em>product</em> type. An example is: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Quiz</span> = <span class="type">Quiz</span> <span class="type">Answer</span> <span class="type">Answer</span></span></span><br></pre></td></tr></table></figure></p>
+<p>The <code>data</code> keyword is the same, indicating we're introducing a new (algebraic) type. The data type is <code>Quiz</code>, and it has one data constructor, also <code>Quiz</code>. Don't be confused by the fact that the type and the one data constructor are both defined as <code>Quiz</code>, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are twelve possible values for the type <code>Quiz</code>:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><code>Quiz Yes Yes</code></td>
+<td><code>Quiz Yes No</code></td>
+<td><code>Quiz Yes (LeaningTowards True)</code></td>
+<td><code>Quiz Yes (LeaningTowards False)</code></td>
+</tr>
+<tr class="even">
+<td><code>Quiz No Yes</code></td>
+<td><code>Quiz No No</code></td>
+<td><code>Quiz No (LeaningTowards True)</code></td>
+<td><code>Quiz No (LeaningTowards False)</code></td>
+</tr>
+<tr class="odd">
+<td><code>Quiz (LeaningTowards True) Yes</code></td>
+<td><code>Quiz (LeaningTowards True) No</code></td>
+<td><code>Quiz (LeaningTowards True) (LeaningTowards True)</code></td>
+<td><code>Quiz (LeaningTowards True) (LeaningTowards False)</code></td>
+</tr>
+<tr class="even">
+<td><code>Quiz (LeaningTowards False) Yes</code></td>
+<td><code>Quiz (LeaningTowards False) No</code></td>
+<td><code>Quiz (LeaningTowards False) (LeaningTowards True)</code></td>
+<td><code>Quiz (LeaningTowards False) (LeaningTowards False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>The one and only data constructor for <code>Quiz</code> has two parameters of type <code>Answer</code>, and we've seen that <code>Answer</code> has four possible values, therefore the product type <code>Quiz</code> has <code>4 * 4</code> or twelve possible values. Algebra! Product!</p>
+<h2 id="kinds-and-polymorphic-aka-generic-types">Kinds and Polymorphic (aka Generic) Types</h2>
+<p>The <code>Quiz</code> and <code>Answer</code> are monomorphic types because they contain no type parameters. We say the <strong>kind</strong> of <code>Quiz</code> and <code>Answer</code> is <code>Type</code>. This is best illustrated with an example of a simple <em>polymorphic</em> data type: <figure class="highlight haskell"><figcaption><span>the unbiquitous Maybe type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Maybe</span> a</span></span><br><span class="line">  = <span class="type">Nothing</span></span><br><span class="line">  | <span class="type">Just</span> a</span><br></pre></td></tr></table></figure></p>
+<p>The <code>Maybe</code> type is omnipresent in functional programming languages, and some form of it is increasingly found in imperative languages as well. It's typically used to represent a value that may or may not exist. The type itself is parameterized - the <code>a</code> in the example is a <strong>type parameter</strong>. If the <strong>kind</strong> of <code>Quiz</code> is <code>Type</code>, what is the <strong>kind</strong> of <code>Maybe</code>?</p>
+<p>it's <code>Type -&gt; Type</code>.</p>
+<p>Knowing what we know about Haskell functions, this seems like a function that takes a type and returns a type. That's pretty much what it is. We cannot specify terms to have a type <code>Maybe</code>, because <code>Maybe</code> isn't a <code>Type</code>! it's a <code>Type -&gt; Type</code>, or a <em>higher kinded type</em>. To get a <code>Type</code> from <code>Maybe</code>, you must pass it a <code>Type</code>. For example: <figure class="highlight haskell"><figcaption><span>student quiz results</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">s1</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s1</span> = <span class="type">Just</span> (<span class="type">Quiz</span> <span class="type">Yes</span> <span class="type">No</span>)</span><br><span class="line"></span><br><span class="line"><span class="title">s2</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s2</span> = <span class="type">Nothing</span>       <span class="comment">-- didn&#x27;t take the quiz</span></span><br><span class="line"></span><br><span class="line"><span class="title">s3</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s3</span> = <span class="type">Just</span> (<span class="type">Quiz</span> <span class="type">No</span> (<span class="type">LeaningTowards</span> <span class="type">Yes</span>))</span><br></pre></td></tr></table></figure></p>
+<p>The kind of <code>Maybe Quiz</code> is <code>Type</code> which means it can be used to specify the type of the terms <code>s1</code>, <code>s2</code>, and <code>s3</code> above.</p>
+<p>We see <code>Maybe</code> data constructors <code>Nothing</code> and <code>Just</code> being used here. Either a student took the quiz, represented by <code>Just ...</code> or they didn't, represented by <code>Nothing</code>.</p>
+<h2 id="back-to-our-list">Back to Our List</h2>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line"><span class="title">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>Now that we understand algebraic data types and higher kinded types, we can see that <code>Lst</code> is kind <code>Type -&gt; Type</code>, and <code>NIL</code> and <code>Cons Lst</code> are data constructors. So far so good. <code>Lst</code> adds one more concept - a recursively defined, or <em>inductive</em> construct. The first data constructor is <code>NIL</code>, which represents an empty list. The other data constructor, <code>Cons a (Lst a)</code> is recursive; it has two parameters, the first being <code>a</code> which represents the type of values the list can contain, and it the second parameter is a value of type <code>Lst a</code>, another list. Lets look at an example of using our <code>Lst</code> type. <figure class="highlight haskell"><figcaption><span>Lst Example</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>, <span class="type">Int</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="title">nums</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">nums</span> = <span class="type">Cons</span> <span class="number">1</span> (<span class="type">Cons</span> <span class="number">2</span> (<span class="type">Cons</span> <span class="number">3</span> <span class="type">NIL</span>))</span><br></pre></td></tr></table></figure></p>
+<p>In this example <code>nums</code> is a <code>Lst Int</code> , or a list of integers. I've included <code>Int</code> in the list of identifiers being imported from Prelude so we could specify the type parameter for <code>Lst</code> to be specifically <code>Int</code>. Noticed how we declare constants in a similar way that we declare functions, the type specification comes before the assignment (see this post on <a href="/2023/02/06/230206-Haskell-Basics-01/" title="Haskell Basics - Functions 01">functions for more info</a>). This is effectively how Haskell's standard library implements the list type, only since lists are so common and heavily used, there's some syntactic sugar in Haskell syntax that makes working with lists much more bearable and intuitive. We'll see these later, but our definition is definitely a valid way to represent lists.</p>
+<p>So now that we've got a list defined ... we need to do something with it. Next time we'll work with our list type in creating some functions you typically use with lists - things like getting the length, appending one list to another, and mapping values in a list using a function to create a new list.</p>
+<p>Happy Hacking!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cldxuov7o0005gnosejsuczyy" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/induction/" rel="tag">induction</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-230207-GHCup" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/07/230207-GHCup/" class="article-date">
+  <time class="dt-published" datetime="2023-02-07T06:00:00.000Z" itemprop="datePublished">2023-02-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>A quick and easy way to get Haskell set up and keep it up to date is to use <a target="_blank" rel="noopener" href="https://www.haskell.org/ghcup/">GHCup</a>. Follow the link for directions. GHCup will install a few different components. Haskell has a history of what is, by modern standards, poor tooling. It's not a new language, Haskell was developed in the early 90s, and for the first couple of decades of its existence was mostly an academic programming language, and it shows.</p>
+<p>Things are far better now, but not quite as slick as Golang or Rust's ecosystems which have the benefit of being recently developed with contemporary thinking about tooling and package management. Here's some initial guidance.</p>
+<h2 id="ghc---glasgow-haskell-compiler"><a target="_blank" rel="noopener" href="https://www.haskell.org/ghc/">GHC</a> - Glasgow Haskell Compiler</h2>
+<p>The open source compiler for Haskell. Technically this is just <em>one</em> of the Haskell compilers available, as the intent of Haskell was to be a specification and not an implementation, thereby not locking anyone into a single compiler.</p>
+<p>The reality is that most people are using GHC, and that most experimentation and expansion of the Haskell specification is happening in GHC. It's considered the most advanced Haskell compiler and to make your life simpler, just go with GHC and forget that there are other choices, until you find a compelling reason to do so.</p>
+<h2 id="cabal">Cabal</h2>
+<p>The standard package system for Haskell software, and for the longest time was <strong>the</strong> way to build Haskell programs, find and download packages, and build and publish packages. Many people still use Cabal, and it's not too bad. I personally don't I use the next tool in the list.</p>
+<h2 id="stack">Stack</h2>
+<p>aka The <a target="_blank" rel="noopener" href="https://docs.haskellstack.org/en/stable/">Haskell Tool Stack</a>, it's a program for working with Haskell projects, and is a bit more modern in its approach. This is the approach I use, and while <em>still</em> not perfect, it's at least somewhat reasonable, and once you establish a practice it's trivial to use Stack for package and product management. Stack actually leverage Cabal internally to do the actual work of package management, so the're reasonably compatible and interchangeable.</p>
+<h2 id="hls"><a target="_blank" rel="noopener" href="https://haskell-language-server.readthedocs.io/en/stable/">HLS</a></h2>
+<p>The Haskell Language Server, an implementation of the <a target="_blank" rel="noopener" href="https://microsoft.github.io/language-server-protocol/">Language Server Protocol</a> for Haskell. The Language Server Protocol, or LSP, defines a protocol use between an editor or IDE and a language server that provides language features like auto complete, go to definition, find all references, etc.. For a long time (and this is where the poor tooling rep was spot on), you would have a hard time working with Haskell outside of Emacs. With the HLS, we get a decent language aware IDE from VSCode, and many other editors that are now LSP aware.</p>
+<h1 id="using-the-repl">Using the REPL</h1>
+<p>Once you've got the Haskell tooling installed and before you get involved with setting up a full project with either Stack or Cabal, to get your feet wet you can use the REPL combined with a single Haskell file like this: <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="comment"># create your source file</span></span><br><span class="line">$ <span class="built_in">touch</span> scratch.hs  <span class="comment"># or whatever you want to call it</span></span><br><span class="line">$ stack repl scratch.hs</span><br></pre></td></tr></table></figure></p>
+<p>This starts the REPL. You'll see a prompt <code>Prelude&gt;</code>, indicating you've got the REPL with Prelude (the standard library), and your file is loaded (even if it's empty). From here, you can use a few of these handy REPL commands:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Command</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>:?</code></td>
+<td>Get help on all the commands</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>:quit</code></td>
+<td>Quit the repl</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>:type</code></td>
+<td>Output the type of the term or expression</td>
+<td><code>Prelude&gt; :t [1,2,3]</code></td>
+</tr>
+<tr class="even">
+<td><code>:kind</code></td>
+<td>Get the <em>kind</em> of a <code>Type</code></td>
+<td><code>Prelude&gt; :k Maybe</code></td>
+</tr>
+<tr class="odd">
+<td><code>:edit</code></td>
+<td>Opens the currently loaded file (scratch.hs in our example) in the default editor. Saving and quitting the editor will reload the file in the REPL</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>:reload</code></td>
+<td>Reloads the currently loaded file. You can have an editor open on the file in the REPL, and iterate on the file, saving it each time. Then use the <code>:r</code> command in the REPL to load the latest save</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="editing-your-file">Editing Your File</h2>
+<p>The REPL is handy of course for trying things out. But since it's only one line at a time (there's a kind of multi-line ability but it's not great), it's handy to have a file in your REPL session. You can either keep the file open in your favorite editor and iterate over it making changes, and periodically reload into the REPL with the <code>:r</code> command, or you can use the <code>:e</code> command to fire up your default editor (VIM in my case) make edits, and when you save/quit, the REPL will automatically reload your source file.</p>
+<p>That's the basics... Happy Hacking!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://efvincent.github.io/2023/02/07/230207-GHCup/" data-id="cldxuov7m0003gnos6mqu54z6" data-title="Install Haskell with GHCup" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-230206-Haskell-Basics-01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/06/230206-Haskell-Basics-01/" class="article-date">
+  <time class="dt-published" datetime="2023-02-06T05:00:00.000Z" itemprop="datePublished">2023-02-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
     </h1>
   
 
@@ -118,7 +334,7 @@
 <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="comment">-- the type of the function bound to mathy</span></span><br><span class="line">&gt; :t mathy</span><br><span class="line"><span class="title">mathy</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">&gt; <span class="comment">-- callng with one parameter</span></span><br><span class="line">&gt; :t mathy <span class="number">8</span></span><br><span class="line"><span class="title">mathy</span> <span class="number">8</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">&gt; <span class="comment">-- calling the all parameters</span></span><br><span class="line">&gt; :t mathy <span class="number">8</span> <span class="number">4</span></span><br><span class="line"><span class="title">mathy</span> <span class="number">8</span> <span class="number">4</span> :: <span class="type">Int</span></span><br></pre></td></tr></table></figure>
 <p>You should be seeing the pattern here. Arrow <code>-&gt;</code> is actually a polymorphic type constructor, in some other languages called a generic type. Specifically it's a generic type in two type variables, the input (on the left of the arrow) and the output (on the right of the arrow). In C#, the type of anonymous functions is <code>Func&lt;T,TReturn&gt;</code>, a polymorphic type in two type variables, the first <code>T</code> is the type of input, and the second <code>TReturn</code> is the type of output. Java has a similar generic type for anonymous functions.</p>
 <h3 id="infix">Infix</h3>
-<p>Haskell has the notion of <em>infix</em> operators, and that's what <code>-&gt;</code> is, and <em><strong>infix</strong></em> <em>polymorphic type constructor</em>. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.</p>
+<p>Haskell has the notion of <em>infix</em> operators, and that's what <code>-&gt;</code> is, an <em><strong>infix</strong></em> <em>polymorphic type constructor</em>. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.</p>
 <p>We could define our <code>mathy</code> function that's infix: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- | An infix version of mathy</span></span><br><span class="line">(++++) :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line">(++++) m n = (m * <span class="number">10</span>) + n</span><br></pre></td></tr></table></figure></p>
 <p>Then it could be called infix style, like you would addition: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="number">8</span> ++++ <span class="number">5</span></span><br><span class="line"><span class="number">85</span></span><br></pre></td></tr></table></figure></p>
 <p>You can also call non symbolic functions in an infix style by surrounding it with back tick characters. <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- infix calling of mathy</span></span><br><span class="line">&gt; <span class="number">8</span> `mathy` <span class="number">5</span></span><br><span class="line"><span class="number">85</span></span><br></pre></td></tr></table></figure></p>
@@ -130,10 +346,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://efvincent.github.io/2023/02/06/Haskell-Basics-01/" data-id="cldtr07nw000zi7n9a5fjha4k" data-title="Haskell Basics - Functions 01" class="article-share-link">Share</a>
+      <a data-url="http://efvincent.github.io/2023/02/06/230206-Haskell-Basics-01/" data-id="cldxuov7j0001gnos9qg9fsyp" data-title="Haskell Basics - Functions 01" class="article-share-link">Share</a>
       
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/functions/" rel="tag">functions</a></li></ul>
+
     </footer>
   </div>
   
@@ -142,9 +360,9 @@
 
 
   
-    <article id="post-A-Fresh-Start" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <article id="post-230205-Fresh-Start" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/02/05/A-Fresh-Start/" class="article-date">
+    <a href="/2023/02/05/230205-Fresh-Start/" class="article-date">
   <time class="dt-published" datetime="2023-02-05T18:00:00.000Z" itemprop="datePublished">2023-02-05</time>
 </a>
     
@@ -160,7 +378,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/02/05/A-Fresh-Start/">A Fresh Start</a>
+      <a class="p-name article-title" href="/2023/02/05/230205-Fresh-Start/">A Fresh Start</a>
     </h1>
   
 
@@ -228,7 +446,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://efvincent.github.io/2023/02/05/A-Fresh-Start/" data-id="cldtr07nv000vi7n99l5i3jt2" data-title="A Fresh Start" class="article-share-link">Share</a>
+      <a data-url="http://efvincent.github.io/2023/02/05/230205-Fresh-Start/" data-id="cldxuov7d0000gnos0pyw36jx" data-title="A Fresh Start" class="article-share-link">Share</a>
       
       
       
@@ -250,16 +468,30 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/functional/">functional</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/functional/basics/">basics</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
     </div>
   </div>
 
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/induction/" rel="tag">induction</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/basics/" style="font-size: 20px;">basics</a> <a href="/tags/data-structures/" style="font-size: 10px;">data-structures</a> <a href="/tags/functions/" style="font-size: 10px;">functions</a> <a href="/tags/haskell/" style="font-size: 20px;">haskell</a> <a href="/tags/induction/" style="font-size: 10px;">induction</a> <a href="/tags/setup/" style="font-size: 10px;">setup</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
@@ -278,11 +510,19 @@
       <ul>
         
           <li>
-            <a href="/2023/02/06/Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+            <a href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
           </li>
         
           <li>
-            <a href="/2023/02/05/A-Fresh-Start/">A Fresh Start</a>
+            <a href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/05/230205-Fresh-Start/">A Fresh Start</a>
           </li>
         
       </ul>

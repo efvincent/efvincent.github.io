@@ -9,14 +9,15 @@
   <meta name="description" content="The syntax for function definition in Haskell is different from most other programming languages, especially mainstream programming languages. Let&#39;s take a look at a simple function. 123-- | Perform m">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Haskell Basics - Functions 01">
-<meta property="og:url" content="http://efvincent.github.io/2023/02/06/Haskell-Basics-01/">
+<meta property="og:url" content="http://efvincent.github.io/2023/02/06/230206-Haskell-Basics-01/">
 <meta property="og:site_name" content="Curried Functions">
 <meta property="og:description" content="The syntax for function definition in Haskell is different from most other programming languages, especially mainstream programming languages. Let&#39;s take a look at a simple function. 123-- | Perform m">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-02-06T05:00:00.000Z">
-<meta property="article:modified_time" content="2023-02-07T04:34:46.958Z">
+<meta property="article:modified_time" content="2023-02-10T01:29:01.156Z">
 <meta property="article:author" content="Eric Vincent">
-<meta property="article:tag" content="computer-science functional-programming">
+<meta property="article:tag" content="basics">
+<meta property="article:tag" content="functions">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Curried Functions" type="application/atom+xml">
@@ -78,14 +79,14 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-Haskell-Basics-01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-230206-Haskell-Basics-01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/02/06/Haskell-Basics-01/" class="article-date">
+    <a href="/2023/02/06/230206-Haskell-Basics-01/" class="article-date">
   <time class="dt-published" datetime="2023-02-06T05:00:00.000Z" itemprop="datePublished">2023-02-06</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/haskell/">haskell</a>►<a class="article-category-link" href="/categories/haskell/functional/">functional</a>►<a class="article-category-link" href="/categories/haskell/functional/basics/">basics</a>
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
   </div>
 
   </div>
@@ -118,7 +119,7 @@
 <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="comment">-- the type of the function bound to mathy</span></span><br><span class="line">&gt; :t mathy</span><br><span class="line"><span class="title">mathy</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">&gt; <span class="comment">-- callng with one parameter</span></span><br><span class="line">&gt; :t mathy <span class="number">8</span></span><br><span class="line"><span class="title">mathy</span> <span class="number">8</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">&gt; <span class="comment">-- calling the all parameters</span></span><br><span class="line">&gt; :t mathy <span class="number">8</span> <span class="number">4</span></span><br><span class="line"><span class="title">mathy</span> <span class="number">8</span> <span class="number">4</span> :: <span class="type">Int</span></span><br></pre></td></tr></table></figure>
 <p>You should be seeing the pattern here. Arrow <code>-&gt;</code> is actually a polymorphic type constructor, in some other languages called a generic type. Specifically it's a generic type in two type variables, the input (on the left of the arrow) and the output (on the right of the arrow). In C#, the type of anonymous functions is <code>Func&lt;T,TReturn&gt;</code>, a polymorphic type in two type variables, the first <code>T</code> is the type of input, and the second <code>TReturn</code> is the type of output. Java has a similar generic type for anonymous functions.</p>
 <h3 id="infix">Infix</h3>
-<p>Haskell has the notion of <em>infix</em> operators, and that's what <code>-&gt;</code> is, and <em><strong>infix</strong></em> <em>polymorphic type constructor</em>. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.</p>
+<p>Haskell has the notion of <em>infix</em> operators, and that's what <code>-&gt;</code> is, an <em><strong>infix</strong></em> <em>polymorphic type constructor</em>. Functions and type constructors are typically post fix; the arguments go after the function name. Infix works like the plus sign, which represents the addition function. The plus sits between the two numbers being added. Haskell lets us define functions, and type constructors, as infix.</p>
 <p>We could define our <code>mathy</code> function that's infix: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- | An infix version of mathy</span></span><br><span class="line">(++++) :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line">(++++) m n = (m * <span class="number">10</span>) + n</span><br></pre></td></tr></table></figure></p>
 <p>Then it could be called infix style, like you would addition: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="number">8</span> ++++ <span class="number">5</span></span><br><span class="line"><span class="number">85</span></span><br></pre></td></tr></table></figure></p>
 <p>You can also call non symbolic functions in an infix style by surrounding it with back tick characters. <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- infix calling of mathy</span></span><br><span class="line">&gt; <span class="number">8</span> `mathy` <span class="number">5</span></span><br><span class="line"><span class="number">85</span></span><br></pre></td></tr></table></figure></p>
@@ -130,18 +131,29 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://efvincent.github.io/2023/02/06/Haskell-Basics-01/" data-id="cldtr07nw000zi7n9a5fjha4k" data-title="Haskell Basics - Functions 01" class="article-share-link">Share</a>
+      <a data-url="http://efvincent.github.io/2023/02/06/230206-Haskell-Basics-01/" data-id="cldxuov7j0001gnos9qg9fsyp" data-title="Haskell Basics - Functions 01" class="article-share-link">Share</a>
       
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/functions/" rel="tag">functions</a></li></ul>
+
     </footer>
   </div>
   
     
 <nav id="article-nav">
   
+    <a href="/2023/02/07/230207-GHCup/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Install Haskell with GHCup
+        
+      </div>
+    </a>
   
-    <a href="/2023/02/05/A-Fresh-Start/" id="article-nav-older" class="article-nav-link-wrap">
+  
+    <a href="/2023/02/05/230205-Fresh-Start/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
       <div class="article-nav-title">A Fresh Start</div>
     </a>
@@ -160,16 +172,30 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/functional/">functional</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/functional/basics/">basics</a></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
     </div>
   </div>
 
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/induction/" rel="tag">induction</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/basics/" style="font-size: 20px;">basics</a> <a href="/tags/data-structures/" style="font-size: 10px;">data-structures</a> <a href="/tags/functions/" style="font-size: 10px;">functions</a> <a href="/tags/haskell/" style="font-size: 20px;">haskell</a> <a href="/tags/induction/" style="font-size: 10px;">induction</a> <a href="/tags/setup/" style="font-size: 10px;">setup</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
@@ -188,11 +214,19 @@
       <ul>
         
           <li>
-            <a href="/2023/02/06/Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+            <a href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
           </li>
         
           <li>
-            <a href="/2023/02/05/A-Fresh-Start/">A Fresh Start</a>
+            <a href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/05/230205-Fresh-Start/">A Fresh Start</a>
           </li>
         
       </ul>

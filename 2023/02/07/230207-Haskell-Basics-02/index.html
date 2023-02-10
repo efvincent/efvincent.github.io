@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Haskell Basics - Lists 01 | Curried Functions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Lists are one of the fundamental data structures in Haskell and many other programming languages. LISP for example is a portmanteau of &quot;LISt&quot; and &quot;Processing&quot;. The implementation of lists in Haskell i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Haskell Basics - Lists 01">
+<meta property="og:url" content="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/">
+<meta property="og:site_name" content="Curried Functions">
+<meta property="og:description" content="Lists are one of the fundamental data structures in Haskell and many other programming languages. LISP for example is a portmanteau of &quot;LISt&quot; and &quot;Processing&quot;. The implementation of lists in Haskell i">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-02-07T07:00:00.000Z">
+<meta property="article:modified_time" content="2023-02-10T01:29:01.156Z">
+<meta property="article:author" content="Eric Vincent">
+<meta property="article:tag" content="basics">
+<meta property="article:tag" content="haskell">
+<meta property="article:tag" content="induction">
+<meta property="article:tag" content="data-structures">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Curried Functions" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Curried Functions</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Who likes to code</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://efvincent.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-230207-Haskell-Basics-02" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/07/230207-Haskell-Basics-02/" class="article-date">
+  <time class="dt-published" datetime="2023-02-07T07:00:00.000Z" itemprop="datePublished">2023-02-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Haskell Basics - Lists 01
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Lists are one of the fundamental data structures in Haskell and many other programming languages. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">LISP</a> for example is a portmanteau of "LISt" and "Processing". The implementation of lists in Haskell is also a great way to look at a few different key features of the language that we'll discuss.</p>
+<h2 id="no-implicit-prelude">No Implicit Prelude</h2>
+<p>Let's do some "first principals" type experimentation. We'll create a module and tell Haskell not to import <code>Prelude</code>, which is the standard library. This will allow us to create our own list types and functions without conflicting with the ones from the standard library.</p>
+<p>If you want to follow along, I suggest following these <a href="/2023/02/07/230207-GHCup/" title="Install Haskell with GHCup">installation instructions</a>. Then you can create a file with the <code>*.hs</code> extension.</p>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGAUGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br></pre></td></tr></table></figure>
+<p>The first line is a compiler directive that excludes Prelude from being automatically imported. The other line defines a module. You can name your module any legal module name; alpha-numeric starting with a capital letter.</p>
+<h1 id="a-list-type">A List Type</h1>
+<p>We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only):</p>
+<figure class="highlight haskell"><figcaption><span>The Lst Type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>After excluding <code>Prelude</code> with the language extension, we add back in something called <code>Show</code>, which will make it easier to display values we're working with in the REPL; don't worry about the details for now.</p>
+<h2 id="algebraic-data-types">Algebraic Data Types</h2>
+<p>Let's break down the definition of the <code>Lst</code> type by first examining the <code>data</code> keyword, which indicates the beginning of a definition of a new <em>algebraic data type</em>. There are two kinds of algebraic data types - sum types and product types. What we've described above is a <em>sum type</em>. It's called sum because the total number of possible values is the sum of the number of values that each <em>data constructor</em> can produce. Let's look at a simple example:</p>
+<figure class="highlight haskell"><figcaption><span>Example Algebraic data type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Answer</span> </span></span><br><span class="line">  = <span class="type">Yes</span> </span><br><span class="line">  | <span class="type">No</span> </span><br><span class="line">  | <span class="type">LeaningTowards</span> <span class="type">Bool</span></span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>In this strange example, we have a data type <code>Answer</code> that has three data constructors. Two of them, <code>Yes</code> and <code>No</code>, take no parameters. The last one, <code>LeaningTowards</code> has a <code>Bool</code> parameter. This means the values, or terms, that inhabit the <code>Answer</code> data type are: <code>Yes</code>, <code>No</code>, <code>LeaningTowards True</code>, and <code>LeaningTowards False</code></p>
+<p>The total number of values inhabiting <code>Answer</code> is four, which is the <em>sum</em> of the number of terms that each data constructor can produce. <code>Yes</code> and <code>No</code> can only produce one value each since they have no parameters. Intuitively they behave like values and you'll soon see how in code they're used in places where values are used, but <code>LeaningTowards</code> has a parameter of type <code>Bool</code>, which defines two data constructors (<code>True</code> and <code>False</code>), bringing to total possible values of type <code>Answer</code> to four. Algebra! Sum!</p>
+<p>The other type of algebraic data type is the <em>product</em> type. An example is: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Quiz</span> = <span class="type">Quiz</span> <span class="type">Answer</span> <span class="type">Answer</span></span></span><br></pre></td></tr></table></figure></p>
+<p>The <code>data</code> keyword is the same, indicating we're introducing a new (algebraic) type. The data type is <code>Quiz</code>, and it has one data constructor, also <code>Quiz</code>. Don't be confused by the fact that the type and the one data constructor are both defined as <code>Quiz</code>, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are twelve possible values for the type <code>Quiz</code>:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><code>Quiz Yes Yes</code></td>
+<td><code>Quiz Yes No</code></td>
+<td><code>Quiz Yes (LeaningTowards True)</code></td>
+<td><code>Quiz Yes (LeaningTowards False)</code></td>
+</tr>
+<tr class="even">
+<td><code>Quiz No Yes</code></td>
+<td><code>Quiz No No</code></td>
+<td><code>Quiz No (LeaningTowards True)</code></td>
+<td><code>Quiz No (LeaningTowards False)</code></td>
+</tr>
+<tr class="odd">
+<td><code>Quiz (LeaningTowards True) Yes</code></td>
+<td><code>Quiz (LeaningTowards True) No</code></td>
+<td><code>Quiz (LeaningTowards True) (LeaningTowards True)</code></td>
+<td><code>Quiz (LeaningTowards True) (LeaningTowards False)</code></td>
+</tr>
+<tr class="even">
+<td><code>Quiz (LeaningTowards False) Yes</code></td>
+<td><code>Quiz (LeaningTowards False) No</code></td>
+<td><code>Quiz (LeaningTowards False) (LeaningTowards True)</code></td>
+<td><code>Quiz (LeaningTowards False) (LeaningTowards False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>The one and only data constructor for <code>Quiz</code> has two parameters of type <code>Answer</code>, and we've seen that <code>Answer</code> has four possible values, therefore the product type <code>Quiz</code> has <code>4 * 4</code> or twelve possible values. Algebra! Product!</p>
+<h2 id="kinds-and-polymorphic-aka-generic-types">Kinds and Polymorphic (aka Generic) Types</h2>
+<p>The <code>Quiz</code> and <code>Answer</code> are monomorphic types because they contain no type parameters. We say the <strong>kind</strong> of <code>Quiz</code> and <code>Answer</code> is <code>Type</code>. This is best illustrated with an example of a simple <em>polymorphic</em> data type: <figure class="highlight haskell"><figcaption><span>the unbiquitous Maybe type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Maybe</span> a</span></span><br><span class="line">  = <span class="type">Nothing</span></span><br><span class="line">  | <span class="type">Just</span> a</span><br></pre></td></tr></table></figure></p>
+<p>The <code>Maybe</code> type is omnipresent in functional programming languages, and some form of it is increasingly found in imperative languages as well. It's typically used to represent a value that may or may not exist. The type itself is parameterized - the <code>a</code> in the example is a <strong>type parameter</strong>. If the <strong>kind</strong> of <code>Quiz</code> is <code>Type</code>, what is the <strong>kind</strong> of <code>Maybe</code>?</p>
+<p>it's <code>Type -&gt; Type</code>.</p>
+<p>Knowing what we know about Haskell functions, this seems like a function that takes a type and returns a type. That's pretty much what it is. We cannot specify terms to have a type <code>Maybe</code>, because <code>Maybe</code> isn't a <code>Type</code>! it's a <code>Type -&gt; Type</code>, or a <em>higher kinded type</em>. To get a <code>Type</code> from <code>Maybe</code>, you must pass it a <code>Type</code>. For example: <figure class="highlight haskell"><figcaption><span>student quiz results</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">s1</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s1</span> = <span class="type">Just</span> (<span class="type">Quiz</span> <span class="type">Yes</span> <span class="type">No</span>)</span><br><span class="line"></span><br><span class="line"><span class="title">s2</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s2</span> = <span class="type">Nothing</span>       <span class="comment">-- didn&#x27;t take the quiz</span></span><br><span class="line"></span><br><span class="line"><span class="title">s3</span> :: <span class="type">Maybe</span> <span class="type">Quiz</span></span><br><span class="line"><span class="title">s3</span> = <span class="type">Just</span> (<span class="type">Quiz</span> <span class="type">No</span> (<span class="type">LeaningTowards</span> <span class="type">Yes</span>))</span><br></pre></td></tr></table></figure></p>
+<p>The kind of <code>Maybe Quiz</code> is <code>Type</code> which means it can be used to specify the type of the terms <code>s1</code>, <code>s2</code>, and <code>s3</code> above.</p>
+<p>We see <code>Maybe</code> data constructors <code>Nothing</code> and <code>Just</code> being used here. Either a student took the quiz, represented by <code>Just ...</code> or they didn't, represented by <code>Nothing</code>.</p>
+<h2 id="back-to-our-list">Back to Our List</h2>
+<figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line"><span class="title">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>Now that we understand algebraic data types and higher kinded types, we can see that <code>Lst</code> is kind <code>Type -&gt; Type</code>, and <code>NIL</code> and <code>Cons Lst</code> are data constructors. So far so good. <code>Lst</code> adds one more concept - a recursively defined, or <em>inductive</em> construct. The first data constructor is <code>NIL</code>, which represents an empty list. The other data constructor, <code>Cons a (Lst a)</code> is recursive; it has two parameters, the first being <code>a</code> which represents the type of values the list can contain, and it the second parameter is a value of type <code>Lst a</code>, another list. Lets look at an example of using our <code>Lst</code> type. <figure class="highlight haskell"><figcaption><span>Lst Example</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>, <span class="type">Int</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="title">nums</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">nums</span> = <span class="type">Cons</span> <span class="number">1</span> (<span class="type">Cons</span> <span class="number">2</span> (<span class="type">Cons</span> <span class="number">3</span> <span class="type">NIL</span>))</span><br></pre></td></tr></table></figure></p>
+<p>In this example <code>nums</code> is a <code>Lst Int</code> , or a list of integers. I've included <code>Int</code> in the list of identifiers being imported from Prelude so we could specify the type parameter for <code>Lst</code> to be specifically <code>Int</code>. Noticed how we declare constants in a similar way that we declare functions, the type specification comes before the assignment (see this post on <a href="/2023/02/06/230206-Haskell-Basics-01/" title="Haskell Basics - Functions 01">functions for more info</a>). This is effectively how Haskell's standard library implements the list type, only since lists are so common and heavily used, there's some syntactic sugar in Haskell syntax that makes working with lists much more bearable and intuitive. We'll see these later, but our definition is definitely a valid way to represent lists.</p>
+<p>So now that we've got a list defined ... we need to do something with it. Next time we'll work with our list type in creating some functions you typically use with lists - things like getting the length, appending one list to another, and mapping values in a list using a function to create a new list.</p>
+<p>Happy Hacking!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cldxuov7o0005gnosejsuczyy" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/induction/" rel="tag">induction</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2023/02/07/230207-GHCup/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Install Haskell with GHCup</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/induction/" rel="tag">induction</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/basics/" style="font-size: 20px;">basics</a> <a href="/tags/data-structures/" style="font-size: 10px;">data-structures</a> <a href="/tags/functions/" style="font-size: 10px;">functions</a> <a href="/tags/haskell/" style="font-size: 20px;">haskell</a> <a href="/tags/induction/" style="font-size: 10px;">induction</a> <a href="/tags/setup/" style="font-size: 10px;">setup</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/05/230205-Fresh-Start/">A Fresh Start</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Eric Vincent<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
