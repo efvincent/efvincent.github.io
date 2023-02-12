@@ -14,7 +14,7 @@
 <meta property="og:description" content="Lists are one of the fundamental data structures in Haskell and many other programming languages. LISP for example is a portmanteau of &quot;LISt&quot; and &quot;Processing&quot;. The implementation of lists in Haskell i">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-02-07T07:00:00.000Z">
-<meta property="article:modified_time" content="2023-02-12T01:27:34.650Z">
+<meta property="article:modified_time" content="2023-02-12T17:56:16.812Z">
 <meta property="article:author" content="Eric Vincent">
 <meta property="article:tag" content="basics">
 <meta property="article:tag" content="haskell">
@@ -122,7 +122,7 @@
 <p>In this strange example, we have a data type <code>Answer</code> that has three data constructors. Two of them, <code>Yes</code> and <code>No</code>, take no parameters. The last one, <code>LeaningTowards</code> has a <code>Bool</code> parameter. This means the values, or terms, that inhabit the <code>Answer</code> data type are: <code>Yes</code>, <code>No</code>, <code>LeaningTowards True</code>, and <code>LeaningTowards False</code></p>
 <p>The total number of values inhabiting <code>Answer</code> is four, which is the <em>sum</em> of the number of terms that each data constructor can produce. <code>Yes</code> and <code>No</code> can only produce one value each since they have no parameters. Intuitively they behave like values and you'll soon see how in code they're used in places where values are used, but <code>LeaningTowards</code> has a parameter of type <code>Bool</code>, which defines two data constructors (<code>True</code> and <code>False</code>), bringing to total possible values of type <code>Answer</code> to four. Algebra! Sum!</p>
 <p>The other type of algebraic data type is the <em>product</em> type. An example is: <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Quiz</span> = <span class="type">Quiz</span> <span class="type">Answer</span> <span class="type">Answer</span></span></span><br></pre></td></tr></table></figure></p>
-<p>The <code>data</code> keyword is the same, indicating we're introducing a new (algebraic) type. The data type is <code>Quiz</code>, and it has one data constructor, also <code>Quiz</code>. Don't be confused by the fact that the type and the one data constructor are both defined as <code>Quiz</code>, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are twelve possible values for the type <code>Quiz</code>:</p>
+<p>The <code>data</code> keyword is the same, indicating we're introducing a new (algebraic) type. The data type is <code>Quiz</code>, and it has one data constructor, also <code>Quiz</code>. Don't be confused by the fact that the type and the one data constructor are both defined as <code>Quiz</code>, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are 16 possible values for the type <code>Quiz</code>:</p>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -157,7 +157,7 @@
 </tr>
 </tbody>
 </table>
-<p>The one and only data constructor for <code>Quiz</code> has two parameters of type <code>Answer</code>, and we've seen that <code>Answer</code> has four possible values, therefore the product type <code>Quiz</code> has <code>4 * 4</code> or twelve possible values. Algebra! Product!</p>
+<p>The one and only data constructor for <code>Quiz</code> has two parameters of type <code>Answer</code>, and we've seen that <code>Answer</code> has four possible values, therefore the product type <code>Quiz</code> has <code>4 * 4</code> or sixteen possible values. Algebra! Product!</p>
 <h2 id="kinds-and-polymorphic-aka-generic-types">Kinds and Polymorphic (aka Generic) Types</h2>
 <p>The <code>Quiz</code> and <code>Answer</code> are monomorphic types because they contain no type parameters. We say the <strong>kind</strong> of <code>Quiz</code> and <code>Answer</code> is <code>Type</code>. This is best illustrated with an example of a simple <em>polymorphic</em> data type: <figure class="highlight haskell"><figcaption><span>the unbiquitous Maybe type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Maybe</span> a</span></span><br><span class="line">  = <span class="type">Nothing</span></span><br><span class="line">  | <span class="type">Just</span> a</span><br></pre></td></tr></table></figure></p>
 <p>The <code>Maybe</code> type is omnipresent in functional programming languages, and some form of it is increasingly found in imperative languages as well. It's typically used to represent a value that may or may not exist. The type itself is parameterized - the <code>a</code> in the example is a <strong>type parameter</strong>. If the <strong>kind</strong> of <code>Quiz</code> is <code>Type</code>, what is the <strong>kind</strong> of <code>Maybe</code>?</p>
@@ -175,7 +175,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cle0pitvb0005h1ooh0t0dpiq" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
+      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cle1oubr50005h7oo5lazctru" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
       
         <a href="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/#disqus_thread" class="article-comment-link">Comments</a>
       
