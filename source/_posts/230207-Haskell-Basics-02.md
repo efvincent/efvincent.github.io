@@ -65,7 +65,7 @@ The other type of algebraic data type is the _product_ type. An example is:
 data Quiz = Quiz Answer Answer
 ```
 
-The `data` keyword is the same, indicating we're introducing a new (algebraic) type. The data type is `Quiz`, and it has one data constructor, also `Quiz`. Don't be confused by the fact that the type and the one data constructor are both defined as `Quiz`, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are twelve possible values for the type `Quiz`:
+The `data` keyword is the same, indicating we're introducing a new (algebraic) type. The data type is `Quiz`, and it has one data constructor, also `Quiz`. Don't be confused by the fact that the type and the one data constructor are both defined as `Quiz`, they're used in different contexts, so once the idea of types vs type constructors clicks for you, this doesn't present a problem. These are 16 possible values for the type `Quiz`:
 
 | | | | |
 |-|-|-|-|
@@ -74,7 +74,7 @@ The `data` keyword is the same, indicating we're introducing a new (algebraic) t
 | `Quiz (LeaningTowards True) Yes`  | `Quiz (LeaningTowards True) No`  | `Quiz (LeaningTowards True) (LeaningTowards True)`  | `Quiz (LeaningTowards True) (LeaningTowards False)`  |
 | `Quiz (LeaningTowards False) Yes`  | `Quiz (LeaningTowards False) No`  | `Quiz (LeaningTowards False) (LeaningTowards True)`  | `Quiz (LeaningTowards False) (LeaningTowards False)`  |
 
-The one and only data constructor for `Quiz` has two parameters of type `Answer`, and we've seen that `Answer` has four possible values, therefore the product type `Quiz` has `4 * 4` or twelve possible values. Algebra! Product!
+The one and only data constructor for `Quiz` has two parameters of type `Answer`, and we've seen that `Answer` has four possible values, therefore the product type `Quiz` has `4 * 4` or sixteen possible values. Algebra! Product!
 
 ## Kinds and Polymorphic (aka Generic) Types
 The `Quiz` and `Answer` are monomorphic types because they contain no type parameters. We say the **kind** of `Quiz` and `Answer` is `Type`. This is best illustrated with an example of a simple _polymorphic_ data type:
