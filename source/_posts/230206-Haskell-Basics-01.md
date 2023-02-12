@@ -1,5 +1,6 @@
 ---
 title: Haskell Basics - Functions 01
+id: haskell-basics-functions-01
 categories:
   - haskell
 tags:

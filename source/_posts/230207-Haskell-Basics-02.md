@@ -1,5 +1,6 @@
 ---
 title: Haskell Basics - Lists 01
+id: haskell-basics-lists-01
 tags:
   - haskell
   - basics

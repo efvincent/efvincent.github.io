@@ -1,5 +1,6 @@
 ---
 title: A Fresh Start
+id: a-fresh-start
 categories:
   - misc
 tags:
