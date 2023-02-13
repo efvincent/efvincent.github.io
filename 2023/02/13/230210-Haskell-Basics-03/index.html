@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Haskell Basics - Lists &amp; Functions 02 | Curried Functions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Previously:  Haskell Basics - Functions 01 Haskell Basics - Lists 01  In recent posts, we&#39;ve discussed a list data type and the basics of function types. Here&#39;s the list that we came up with last time">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Haskell Basics - Lists &amp; Functions 02">
+<meta property="og:url" content="http://efvincent.github.io/2023/02/13/230210-Haskell-Basics-03/">
+<meta property="og:site_name" content="Curried Functions">
+<meta property="og:description" content="Previously:  Haskell Basics - Functions 01 Haskell Basics - Lists 01  In recent posts, we&#39;ve discussed a list data type and the basics of function types. Here&#39;s the list that we came up with last time">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-02-13T05:33:56.656Z">
+<meta property="article:modified_time" content="2023-02-13T05:33:56.656Z">
+<meta property="article:author" content="Eric Vincent">
+<meta property="article:tag" content="basics">
+<meta property="article:tag" content="functions">
+<meta property="article:tag" content="haskell">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Curried Functions" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer" style="background-color: #353333;">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Curried Functions</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Who likes to code</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://efvincent.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-230210-Haskell-Basics-03" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/13/230210-Haskell-Basics-03/" class="article-date">
+  <time class="dt-published" datetime="2023-02-13T05:33:56.656Z" itemprop="datePublished">2023-02-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Haskell Basics - Lists &amp; Functions 02
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Previously:</p>
+<ul>
+<li><a href="/2023/02/06/230206-Haskell-Basics-01/" title="Haskell Basics - Functions 01">Haskell Basics - Functions 01</a></li>
+<li><a href="/2023/02/07/230207-Haskell-Basics-02/" title="Haskell Basics - Lists 01">Haskell Basics - Lists 01</a></li>
+</ul>
+<p>In recent posts, we've discussed <a href="/2023/02/07/230207-Haskell-Basics-02/" title="Haskell Basics - Lists 01">a list data type</a> and the <a href="/2023/02/06/230206-Haskell-Basics-01/" title="Haskell Basics - Functions 01">basics of function types</a>. Here's the list that we came up with last time (I've updated the module name for this post, but otherwise it's the same as last time). <figure class="highlight haskell"><figcaption><span>Lst Example</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"><span class="keyword">module</span> List230210 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure></p>
+<h1 id="functions-on-our-list-type">Functions on our List Type</h1>
+<p>Now we'll combine topics of those two posts and write some of the common functions found that operate on lists, and in doing so, we'll come across several other important concepts in Haskell and in functional programming in general.</p>
+<h2 id="is-the-list-empty">Is the List Empty?</h2>
+<p>Determining whether or not a list is empty is perhaps the simplest possible list function. When programming in Haskell one approach is two write the signature of the function. Believe it or not, in many simple cases, there's only one way to write a function for a given signature. <figure class="highlight haskell"><figcaption><span>Signature of isEmpty</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">isEmpty</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Bool</span></span><br></pre></td></tr></table></figure></p>
+<p>We're stating that the variable <code>isEmpty</code> has the type a function from of a list of <code>a</code> to <code>Bool</code>. In Haskell, functions are <strong>pure</strong>. This means that functions behave more like mathematical functions than the functions we're used to in other programming languages. The function <code>isEmpty</code> can only use/refer to values passed to it as parameters and in its <em>context</em>, which means any variables or modules that are in scope. In this case, there's nothing in our module but the <code>isEmpty</code> function, so it has no other information other than the parameter of type <code>Lst a</code>. No other information is available to the function. Let's look at an implementation. <figure class="highlight haskell"><figcaption><span>isEmpty implementation</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"><span class="keyword">module</span> List230210 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | A datatype for lists of values</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | A custom implementation of a boolean like type</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Booly</span></span></span><br><span class="line">  = <span class="type">Yep</span></span><br><span class="line">  | <span class="type">Nope</span></span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | Return @Yep@ if a @Lst@ is empty, and @Nope@ otherwise</span></span><br><span class="line"><span class="title">isEmpty</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty</span> <span class="type">NIL</span> = <span class="type">Yep</span></span><br><span class="line"><span class="title">isEmpty</span> _   = <span class="type">Nope</span></span><br></pre></td></tr></table></figure></p>
+<p>There are several new elements here to look at. Normally everything in <code>Prelude</code> is imported automatically, but if you recall we've explicitly excluded <code>Prelude</code> with our <code>LANGUAGE</code> directive at the top of the module, so we can redefine types and functions related to lists in this exercise. So we need to implement our own boolean type. The "official" boolean data type in Haskell is <code>Bool</code>, and our <code>Booly</code> data type is defined the same way. We've named ours differently to make it obvious we've defined our own two valued type, but that's all a boolean type is, a data type with two values, and we intuitively assign <em>semantics</em> of truth-hood and false-hood to the two data constructors <code>Yep</code> or <code>True</code>, and <code>Nope</code> or <code>False</code>.</p>
+<h3 id="pattern-matching">Pattern Matching</h3>
+<p>Finally we get to the definition of the <code>isEmpty</code>, and we see one of the key concepts in Haskell that looks very strange to those familiar with mainstream languages: pattern matching. There are two definitions of <code>isEmpty</code>. In the first, in the the position of the parameter, we have the <em>data constructor</em> <code>NIL</code> from the definition of <code>Lst</code>, not a variable like we saw in the first function post, <code>mathy</code>. This causes Haskell to <em>pattern match</em> against the incoming value. If the incoming parameter has the value <code>NIL</code>, the expression evaluates to <code>Yep</code>.</p>
+<p>In the second definition, there's an underscore in the parameter position. This indicates that Haskell should ignore the value in that position, any value will match the underscore. This means that if the first pattern doesn't match a <code>NIL</code>, the second pattern will match any value. For the <code>isEmpty</code> function, this is what we need. If we match <code>NIL</code>, they <code>Yep</code> the list is empty. If we match <em>anything else</em>, then <code>Nope</code> the list is not empty. That's the complete definition of <code>isEmpty</code>!</p>
+<h3 id="the-type-almost-defines-the-function">The Type (almost) Defines the Function</h3>
+<p>Earlier it was stated that often, especially for simple functions, there's only one way to write a function given its type. <code>isEmpty</code> is such a case. What else can we possible do with a function of type <code>Lst a -&gt; Booly</code> ? There are only two possible outputs - <code>Yep</code> and <code>Nope</code>. Since the signature specifies a <code>Lst</code> of <code>a</code> values, but it doesn't say what <code>a</code> should be, it could be anything. This is polymorphic function with no constraints on the type variable <code>a</code>. Since we don't know what <code>a</code> is, we can't know any function that works on <code>a</code> or any of the data constructors that might be part of the definition of <code>a</code>. So in effect, the <code>a</code> tells us nothing. All we know about the parameter comes from <code>Lst</code>, and it says the value might be <code>NIL</code>, or it might be <code>Cons a (Lst a)</code>.</p>
+<p>There are only four ways to define this function:</p>
+<figure class="highlight haskell"><figcaption><span>Four possible ways to define iEmpty</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- | the right way</span></span><br><span class="line"><span class="title">isEmpty</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty</span> <span class="type">NIL</span> = <span class="type">Yep</span></span><br><span class="line"><span class="title">isEmpty</span> _   = <span class="type">Nope</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- | not the right way</span></span><br><span class="line"><span class="title">isEmpty2</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty</span> <span class="type">NIL</span> = <span class="type">Nope</span></span><br><span class="line"><span class="title">isEmpty</span> _   = <span class="type">Yep</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- | cmon now</span></span><br><span class="line"><span class="title">isEmpty3</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty3</span> _  = <span class="type">Yep</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">-- | ok we&#x27;ve stopped trying</span></span><br><span class="line"><span class="title">isEmpty4</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty4</span> _  = <span class="type">Nope</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>The first has the semantics we're looking for - it's consistent with the human language we're using. The second is syntactically correct, but has the wrong semantics; it has what we sometimes call a logic error. The last two are <em>constant functions</em>. They ignore their argument and always return the same value, clearly not what we're looking for. So there's only really one way to write this function!</p>
+<p>🤔 ... if you're thinking there's something to the fact that there are only 4 ways to write this function, congratulations, you're paying attention. This should remind you of the discussion of algebraic types from the <a href="/2023/02/07/230207-Haskell-Basics-02/" title="Haskell Basics - Lists 01">post on lists</a>, where we said that for product types, the number of possible values for a type is the product of the number of values in each of the parameterized types. Recall that the type <code>Quiz Answer Answer</code> has 16 different possible values, since <code>Answer</code> had four possible values.</p>
+<p>Our <code>Booly</code> type has two possible values. But our <code>Lst</code> type is recursive, and you can see how it might have an infinite number of values. So <code>2 * Infinity == Infinity</code>, not four. <strong>But</strong>, since we conceptually only care about the two different data constructors for <code>Lst</code>, <code>NIL</code> and <code>Cons...</code>, conceptually there are only two values to <code>Lst</code>, giving <code>2 * 2 == 4</code>, but where's the product algebraic type?</p>
+<p>Recall again, this time from the <a href="/2023/02/06/230206-Haskell-Basics-01/" title="Haskell Basics - Functions 01">post on types</a>, that the arrow <code>-&gt;</code> we've been using for function definitions is a polymorphic type constructor over two types. This is easier to see when we alias the arrow and use it in a prefix way (rather than infix). That gives us this: <figure class="highlight haskell"><figcaption><span>alias the arrow type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- @type@ keyword creates an alias for a data type</span></span><br><span class="line"><span class="class"><span class="keyword">type</span> <span class="type">Func</span> = (-&gt;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- | Return @Yep@ if a @Lst@ is empty, and @Nope@ otherwise, now</span></span><br><span class="line"><span class="comment">--   with a type signature using the @Func@ alias for @(-&gt;)@</span></span><br><span class="line"><span class="title">isEmpty</span> :: <span class="type">Func</span> (<span class="type">Lst</span> a) <span class="type">Booly</span> </span><br><span class="line"><span class="title">isEmpty</span> <span class="type">NIL</span> = <span class="type">Yep</span></span><br><span class="line"><span class="title">isEmpty</span> _   = <span class="type">Nope</span></span><br></pre></td></tr></table></figure></p>
+<p>Ah - now we see that the arrow is a type, and the two type parameters that make it a product type are the input type and the return type.If we borrow the notation <code>|T|</code> from set theory to mean the cardinality (number of values) that inhabit a type, then we see that:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">|T a b| == |a| * |b|</span><br></pre></td></tr></table></figure>
+<p>Where <code>T</code> is a polymorphic type over <code>a</code> and <code>b</code> which are type variables, and in the case of <code>isEmpty</code> we have <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">|Func (Lst a) Booly| == |Lst a| * |Booly| == 2 * 2 == 4 </span><br></pre></td></tr></table></figure> If we allow that we're only considering two semantically relevant values populating <code>Lst</code>.</p>
+<h4 id="so-what">So what?</h4>
+<p>This is not going to help you configure your Kubernetes cluster or get all the text boxes in your div to line up correctly. Understanding things at this level is the starting point, the tip of the iceberg, to understanding the incredible relationship between computer science, logic, and abstract mathematics. Haskell is a great tool for this exploration, and exploration on which I myself have taken only a few steps. My writing these posts helps me continue to look closely at these topics, continue to have new insights, and solidify concepts.</p>
+<p>Have you ever heard someone say that functional programs are "easier to reason about"? Most of the people who I've heard say this love functional programming, and know that there's <em>something</em> to it that is intuitive, that stimulates their need for things to be ordered and logical. But then there are those who have really studied and gained an understanding of abstract computer science, type theory, programming language theory, set theory, category theory, etc. or some combination of those. They think of reasoning differently.</p>
+<blockquote><p><strong>reasoning (noun)</strong>: ​ the process of thinking about things in a logical way; opinions and ideas that are based on logical thinking</p>
+<footer><strong>Oxford English Dictionary</strong></footer></blockquote>
+<p><em>...based on logical thinking.</em> That's the key. That's what's out there to be learned.</p>
+<p>Happy Hacking!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://efvincent.github.io/2023/02/13/230210-Haskell-Basics-03/" data-id="cle2drubu0006hbp0f8lzgpgg" data-title="Haskell Basics - Lists &amp; Functions 02" class="article-share-link">Share</a>
+      
+        <a href="http://efvincent.github.io/2023/02/13/230210-Haskell-Basics-03/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2023/02/07/230207-Haskell-Basics-02/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Haskell Basics - Lists 01</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+   
+  <div id="disqus_thread"></div>
+  <script>
+   
+  var disqus_config = function () {
+      this.page.url = 'http://efvincent.github.io/2023/02/13/230210-Haskell-Basics-03/index.html';
+      this.page.identifier = 'haskel-basics-lsts-&amp;-funcs';
+      this.page.title = 'Haskell Basics - Lists &amp; Functions 02';
+  };
+   
+  (function() {
+  var d = document, s = d.createElement('script');
+  s.src = 'https://efvincent-blog-1.disqus.com/embed.js';
+  s.setAttribute('data-timestamp', +new Date());
+  (d.head || d.body).appendChild(s);
+  })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/induction/" rel="tag">induction</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/basics/" style="font-size: 20px;">basics</a> <a href="/tags/data-structures/" style="font-size: 10px;">data-structures</a> <a href="/tags/functions/" style="font-size: 15px;">functions</a> <a href="/tags/haskell/" style="font-size: 20px;">haskell</a> <a href="/tags/induction/" style="font-size: 10px;">induction</a> <a href="/tags/setup/" style="font-size: 10px;">setup</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/02/13/230210-Haskell-Basics-03/">Haskell Basics - Lists &amp; Functions 02</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/05/230205-Fresh-Start/">A Fresh Start</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Eric Vincent<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'efvincent-blog-1';
+  
+  var disqus_url = 'http://efvincent.github.io/2023/02/13/230210-Haskell-Basics-03/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.async = true;
+    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
