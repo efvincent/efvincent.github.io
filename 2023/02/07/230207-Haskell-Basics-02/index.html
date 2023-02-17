@@ -14,7 +14,7 @@
 <meta property="og:description" content="Lists are one of the fundamental data structures in Haskell and many other programming languages. LISP for example is a portmanteau of &quot;LISt&quot; and &quot;Processing&quot;. The implementation of lists in Haskell i">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-02-07T07:00:00.000Z">
-<meta property="article:modified_time" content="2023-02-13T05:33:56.656Z">
+<meta property="article:modified_time" content="2023-02-17T22:16:27.180Z">
 <meta property="article:author" content="Eric Vincent">
 <meta property="article:tag" content="basics">
 <meta property="article:tag" content="haskell">
@@ -113,8 +113,8 @@
 <figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGAUGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br></pre></td></tr></table></figure>
 <p>The first line is a compiler directive that excludes Prelude from being automatically imported. The other line defines a module. You can name your module any legal module name; alpha-numeric starting with a capital letter.</p>
 <h1 id="a-list-type">A List Type</h1>
-<p>We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only):</p>
-<figure class="highlight haskell"><figcaption><span>The Lst Type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a</span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br></pre></td></tr></table></figure>
+<p>We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only). In the following snippet, the <code>data</code> keyword is defining a new <em>algebraic data type</em>, <code>Lst a</code>, which has two data constructors, <code>NIL</code> and <code>Cons</code>.</p>
+<figure class="highlight haskell"><figcaption><span>The Lst Type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> List230207 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a           <span class="comment">-- names the new algebraic data type</span></span></span><br><span class="line">  = <span class="type">NIL</span>              <span class="comment">-- First data constructor, represents empty list</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)   <span class="comment">-- Second data constrctor, a value appened to an existing list</span></span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)    <span class="comment">-- Allows conversion of Lst values to strings for display</span></span><br></pre></td></tr></table></figure>
 <p>After excluding <code>Prelude</code> with the language extension, we add back in something called <code>Show</code>, which will make it easier to display values we're working with in the REPL; don't worry about the details for now.</p>
 <h2 id="algebraic-data-types">Algebraic Data Types</h2>
 <p>Let's break down the definition of the <code>Lst</code> type by first examining the <code>data</code> keyword, which indicates the beginning of a definition of a new <em>algebraic data type</em>. There are two kinds of algebraic data types - sum types and product types. What we've described above is a <em>sum type</em>. It's called sum because the total number of possible values is the sum of the number of values that each <em>data constructor</em> can produce. Let's look at a simple example:</p>
@@ -175,7 +175,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cle2drubt0005hbp050r73vzt" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
+      <a data-url="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/" data-id="cle93cgqj0005fsp1757y7zop" data-title="Haskell Basics - Lists 01" class="article-share-link">Share</a>
       
         <a href="http://efvincent.github.io/2023/02/07/230207-Haskell-Basics-02/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -189,7 +189,7 @@
     
 <nav id="article-nav">
   
-    <a href="/2023/02/13/230210-Haskell-Basics-03/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2023/02/17/230210-Haskell-Basics-03/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Newer</strong>
       <div class="article-nav-title">
         
@@ -280,7 +280,7 @@
       <ul>
         
           <li>
-            <a href="/2023/02/13/230210-Haskell-Basics-03/">Haskell Basics - Lists &amp; Functions 02</a>
+            <a href="/2023/02/17/230210-Haskell-Basics-03/">Haskell Basics - Lists &amp; Functions 02</a>
           </li>
         
           <li>
