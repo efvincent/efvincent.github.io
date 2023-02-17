@@ -27,7 +27,7 @@ module List230207 where
 The first line is a compiler directive that excludes Prelude from being automatically imported. The other line defines a module. You can name your module any legal module name; alpha-numeric starting with a capital letter.
 
 # A List Type
-We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only):
+We can define a list in Haskell like this (normally we'd use Prelude's list, this is illustrative only). In the following snippet, the `data` keyword is defining a new *algebraic data type*, `Lst a`, which has two data constructors, `NIL` and `Cons`.
 
 ```haskell The Lst Type
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -36,10 +36,10 @@ module List230207 where
 
 import Prelude (Show)
 
-data Lst a
-  = NIL
-  | Cons a (Lst a)
-  deriving (Show)
+data Lst a           -- names the new algebraic data type
+  = NIL              -- First data constructor, represents empty list
+  | Cons a (Lst a)   -- Second data constrctor, a value appened to an existing list
+  deriving (Show)    -- Allows conversion of Lst values to strings for display
 ```
 
 After excluding `Prelude` with the language extension, we add back in something called `Show`, which will make it easier to display values we're working with in the REPL; don't worry about the details for now.

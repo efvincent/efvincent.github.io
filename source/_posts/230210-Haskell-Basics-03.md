@@ -32,12 +32,12 @@ data Lst a
 Now we'll combine topics of those two posts and write some of the common functions found that operate on lists, and in doing so, we'll come across several other important concepts in Haskell and in functional programming in general.
 
 ## Is the List Empty?
-Determining whether or not  a list is empty is perhaps the simplest possible list function. When programming in Haskell one approach is two write the signature of the function. Believe it or not, in many simple cases, there's only one way to write a function for a given signature. 
+Determining whether or not  a list is empty is perhaps the simplest possible list function. When programming in Haskell one approach is to write the signature of the function. Believe it or not, in many simple cases, there's only one way to write a function for a given signature. 
 ``` haskell Signature of isEmpty
 isEmpty :: Lst a -> Bool
 ```
 
-We're stating that the variable `isEmpty` has the type a function from of a list of `a`  to `Bool`. In Haskell, functions are **pure**. This means that functions behave more like mathematical functions than the functions we're used to in other programming languages. The function `isEmpty` can only use/refer to values passed to it as parameters and in its _context_, which means any variables or modules that are in scope. In this case, there's nothing in our module but the `isEmpty` function, so it has no other information other than the parameter of type `Lst a`. No other information is available to the function. Let's look at an implementation.
+We're stating that the variable `isEmpty` has the type: "a function from of  `Lst a`  to `Bool`". In Haskell, functions are **pure**. This means that functions behave more like mathematical functions than the functions we're used to in other programming languages. The function `isEmpty` can only use/refer to values passed to it as parameters and in its _context_, which means any variables or modules that are in scope. In this case, there's nothing in our module but the `isEmpty` function, so it has no other information other than the parameter of type `Lst a`. No other information is available to the function. Let's look at an implementation.
 ```haskell isEmpty implementation
 {-# LANGUAGE NoImplicitPrelude #-}
 module List230210 where
@@ -66,12 +66,12 @@ There are several new elements here to look at.  Normally everything in `Prelude
 
 ### Pattern Matching
 
-Finally we get to the definition of the `isEmpty`, and we see one of the key concepts in Haskell that looks very strange to those familiar with mainstream languages: pattern matching. There are two definitions of `isEmpty`. In the first, in the the position of the parameter, we have the _data constructor_ `NIL` from the definition of `Lst`, not a variable like we saw in the first function post, `mathy`. This causes Haskell to _pattern match_ against the incoming value. If the incoming parameter has the value `NIL`, the expression evaluates to `Yep`. 
+Finally we get to the definition of the `isEmpty`, and we see one of the key concepts in Haskell that looks very strange to those familiar with mainstream languages: pattern matching. There are two definitions of `isEmpty`. In the first, in the position of the parameter, we have the _data constructor_ `NIL` from the definition of `Lst`, not a variable like we saw in the first function post, `mathy`. This causes Haskell to _pattern match_ against the incoming value. If the incoming parameter has the value `NIL`, the expression evaluates to `Yep`. 
 
-In the second definition, there's an underscore in the parameter position. This indicates that Haskell should ignore the value in that position, any value will match the underscore. This means that if the first pattern doesn't match a `NIL`, the second pattern will match any value. For the `isEmpty` function, this is what we need. If we match `NIL`, they `Yep` the list is empty. If we match _anything else_, then `Nope` the list is not empty. That's the complete definition of `isEmpty`!
+In the second definition, there's an underscore in the parameter position. This indicates that Haskell should ignore the value in that position, any value will match the underscore. This means that if the first pattern doesn't match a `NIL`, the second pattern will match any value. For the `isEmpty` function, this is what we need. If we match `NIL`, then `Yep` the list is empty. If we match _anything else_, then `Nope` the list is not empty. That's the complete definition of `isEmpty`!
 
 ### The Type (almost) Defines the Function
-Earlier it was stated that often, especially for simple functions, there's only one way to write a function given its type. `isEmpty` is such a case. What else can we possible do with a function of type `Lst a -> Booly` ? There are only two possible outputs - `Yep` and `Nope`. Since the signature specifies a `Lst` of `a` values, but it doesn't say what `a` should be, it could be anything. This is polymorphic function with no constraints on the type variable `a`. Since we don't know what `a`  is, we can't know any function that works on `a` or any of the data constructors that might be part of the definition of `a`. So in effect, the `a` tells us nothing. All we know about the parameter comes from `Lst`, and it says the value might be `NIL`, or it might be `Cons a (Lst a)`. 
+Earlier it was stated that often, especially for simple functions, there's only one way to write a function given its type. `isEmpty` is such a case. What else can we possible do with a function of type `Lst a -> Booly` ? There are only two possible outputs - `Yep` and `Nope`. Since the signature specifies a `Lst` of `a` values, but it doesn't say what `a` should be, it could be anything. This is a polymorphic function with no constraints on the type variable `a`. Since we don't know what `a`  is, we can't know any function that works on `a` or any of the data constructors that might be part of the definition of `a`. So in effect, the `a` tells us nothing. All we know about the parameter comes from `Lst`, and it says the value might be `NIL`, or it might be `Cons a (Lst a)`. 
 
 There are only four ways to define this function:
 
@@ -124,10 +124,11 @@ Where `T` is a polymorphic type over `a` and `b` which are type variables, and i
 ```
 |Func (Lst a) Booly| == |Lst a| * |Booly| == 2 * 2 == 4 
 ```
+
 If we allow that we're only considering two semantically relevant values populating `Lst`.
 
 #### So what?
-This is not going to help you configure your Kubernetes cluster or get all the text boxes in your div to line up correctly. Understanding things at this level is the starting point, the tip of the iceberg, to understanding the incredible relationship between computer science, logic, and abstract mathematics. Haskell is a great tool for this exploration, and exploration on which I myself have taken only a few steps. My writing these posts helps me continue to look closely at these topics, continue to have new insights, and solidify concepts.
+This is not going to help you configure your Kubernetes cluster or get all the text boxes in your div to line up correctly. Understanding things at this level is the starting point, the tip of the iceberg, to understanding the incredible relationship between computer science, logic, and abstract mathematics. Haskell is a great tool for this exploration, an exploration on which I myself have taken only a few steps. My writing these posts helps me continue to look closely at these topics, continue to have new insights, and solidify concepts.
 
 Have you ever heard someone say that functional programs are "easier to reason about"? Most of the people who I've heard say this love functional programming, and know that there's _something_ to it that is intuitive, that stimulates their need for things to be ordered and logical. But then there are those who have really studied and gained an understanding of abstract computer science, type theory, programming language theory, set theory, category theory, etc. or some combination of those. They think of reasoning differently. 
 

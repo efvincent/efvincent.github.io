@@ -31,7 +31,8 @@
               }
             }
           }
-        ]
+        ],
+        "currentTab": 1
       },
       {
         "id": "072a0332ae52a633",
@@ -192,9 +193,9 @@
   },
   "active": "2346d47ada490f73",
   "lastOpenFiles": [
+    "_posts/230207-Haskell-Basics-02.md",
     "_posts/230206-Haskell-Basics-01.md",
     "_posts/230210-Haskell-Basics-03.md",
-    "_posts/230207-Haskell-Basics-02.md",
     "_posts/230207-GHCup.md",
     "_posts/230205-Fresh-Start.md",
     "_drafts/2023-02-07-Haskell-Basics-02.md"
