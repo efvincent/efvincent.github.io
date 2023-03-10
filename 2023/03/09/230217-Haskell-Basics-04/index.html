@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Haskell Basics - Lists &amp; Functions 03 | Curried Functions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="In the last post we explored the definition of functions by defining a function that returns Yep (our own boolean definition, Booly) if we pass it an empty list (using our own list definition: Lst). H">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Haskell Basics - Lists &amp; Functions 03">
+<meta property="og:url" content="http://efvincent.github.io/2023/03/09/230217-Haskell-Basics-04/">
+<meta property="og:site_name" content="Curried Functions">
+<meta property="og:description" content="In the last post we explored the definition of functions by defining a function that returns Yep (our own boolean definition, Booly) if we pass it an empty list (using our own list definition: Lst). H">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-03-09T06:00:00.000Z">
+<meta property="article:modified_time" content="2023-03-10T19:40:33.951Z">
+<meta property="article:author" content="Eric Vincent">
+<meta property="article:tag" content="haskell">
+<meta property="article:tag" content="basics">
+<meta property="article:tag" content="functions">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Curried Functions" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer" style="background-color: #353333;">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Curried Functions</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Who likes to code</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://efvincent.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-230217-Haskell-Basics-04" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/09/230217-Haskell-Basics-04/" class="article-date">
+  <time class="dt-published" datetime="2023-03-09T06:00:00.000Z" itemprop="datePublished">2023-03-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/haskell/">haskell</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Haskell Basics - Lists &amp; Functions 03
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>In the <a href="/2023/02/11/230210-Haskell-Basics-03/" title="Haskell Basics - Lists &amp; Functions 02">last post</a> we explored the definition of functions by defining a function that returns <code>Yep</code> (our own boolean definition, <code>Booly</code>) if we pass it an empty list (using our own list definition: <code>Lst</code>). Here's the code with which we were working, and that we'll expand upon in this post. A friend of mine let me know about the Haskell Playground; I've added this as a <a target="_blank" rel="noopener" href="https://play.haskell.org/saved/s6dxVzd1">snippet on the playground</a>, I'll try to add all my samples over there and see how it works out.</p>
+<figure class="highlight haskell"><figcaption><span>picking up from last time</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;-# LANGUAGE NoImplicitPrelude #-&#125;</span></span><br><span class="line"><span class="keyword">module</span> List230217 <span class="keyword">where</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- | The Prelude defines the most common data types and functions for</span></span><br><span class="line"><span class="comment">-- | us, but the LANGUAGE construct at the top of the page excludes the</span></span><br><span class="line"><span class="comment">-- | normally automatically imported Prelude. Here we add back in what</span></span><br><span class="line"><span class="comment">-- | we might need in this module.</span></span><br><span class="line"><span class="keyword">import</span> Prelude (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | our own version of a list datatype</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Lst</span> a </span></span><br><span class="line">  = <span class="type">NIL</span></span><br><span class="line">  | <span class="type">Cons</span> a (<span class="type">Lst</span> a)</span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | our own version of a boolean datatype</span></span><br><span class="line"><span class="class"><span class="keyword">data</span> <span class="type">Booly</span></span></span><br><span class="line">  = <span class="type">Yep</span></span><br><span class="line">  | <span class="type">Nope</span></span><br><span class="line">  <span class="keyword">deriving</span> (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- | Returns true if an instance of @Lst@ is empty, false otherwise</span></span><br><span class="line"><span class="title">isEmpty</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Booly</span></span><br><span class="line"><span class="title">isEmpty</span> <span class="type">NIL</span> = <span class="type">Yep</span></span><br><span class="line"><span class="title">isEmpty</span> _   = <span class="type">Nope</span></span><br></pre></td></tr></table></figure>
+<h2 id="list-length">List Length</h2>
+<p>Next function we'll tackle is finding the length of a list. Most (dare I say all) languages have a function to find the length of a list (or array, or vector, etc.), Haskell included. We, however, have been intentionally <em>excluded</em> <code>Prelude</code>, Haskell's standard library, and we've been re-inventing the wheel by defining our own list and boolean types for the purpose of understanding how these fundamental types work.</p>
+<h3 id="recursive-functions-and-inductive-data-types">Recursive Functions and Inductive Data Types</h3>
+<p>You'll recall that our definition for lists is an <em>inductive</em> data type with two constructors, the <code>NIL</code> constructor that represents an empty list, and the <code>Cons a (Lst a)</code> constructor, which represents one element of the list and the rest of the list. When a sum type has one constructor that refers to it's own type (<code>Cons</code> has a reference to <code>Lst</code>), you should recognize it as an inductive type definition.</p>
+<p>Inductive types and recursive functions are two sides of the same coin. The natural way to enumerate an inductive data type such as this is with a recursive function. Just like an inductive definition starts with a <em>base case</em>, which for our list definition is <code>NIL</code>, the same is true of the recursive function we use to manipulate it. This is a function for calculating the length of a list.</p>
+<figure class="highlight haskell"><figcaption><span>Length of a List</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| An example list of integers 1 - 4 -&#125;</span></span><br><span class="line"><span class="title">ex01</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">ex01</span> = <span class="type">Cons</span> <span class="number">1</span> (<span class="type">Cons</span> <span class="number">2</span> (<span class="type">Cons</span> <span class="number">3</span> (<span class="type">Cons</span> <span class="number">4</span> <span class="type">NIL</span>)))</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Compute the length of a list as an integer -&#125;</span></span><br><span class="line"><span class="title">lstLen</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">lstLen</span> <span class="type">NIL</span> = <span class="number">0</span></span><br><span class="line"><span class="title">lstLen</span> (<span class="type">Cons</span> x xs) = <span class="number">1</span> + lstLen xs</span><br></pre></td></tr></table></figure>
+<p>(<a target="_blank" rel="noopener" href="https://play.haskell.org/saved/al4dQ9oc">snippet</a> in the playground)</p>
+<p>You remember that the first line of the function is the type declaration <code>lstLen :: Lst a -&gt; Int</code>. This tells us that that function has one parameter of type <code>Lst a</code>, where the <code>a</code> is a type variable meaning this will work with lists of any type.</p>
+<p>The base case for the recursive function <code>lstLen</code> handles the case when the list (which is the only parameter) is <code>NIL</code>. When the list is <code>NIL</code>, the length is zero, because it's the empty list. The recursive case matches a list that is <code>(Cons x xs)</code>, this will match any non-empty list. You'll notice our matching case binds variables <code>x</code> and <code>xs</code>. Get used to this syntax, it's <strong>super</strong> common, and Haskell has robust pattern matching and binding.</p>
+<p>The <code>x</code> in the <code>Cons</code> case is the first item in the list, and the <code>xs</code> is the rest of the list. Note that the rest of the list is another list. We can say verbally that the <code>Cons</code> is an item in the list and another list. The "another list" may be another <code>Cons</code> , which would be the head of <em>that</em> list and another list. And so on, until we get to a <code>Nil</code>, which is the empty list.</p>
+<p>To calculate the length of the list, when we get to a <code>Cons</code>, we'll say that the length of the list is one, plus whatever the length of the rest of the list is. In effect, our <code>lstLen</code> function replaces all the <code>Cons</code> that are chained together with a <code>1 +</code> and it replaces the <code>NIL</code> with zero:</p>
+<figure class="highlight text"><figcaption><span>From List to Expression</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(Cons 1 (Cons 2 (Cons 3 (Cons 4 NIL))))  -- ex01</span><br><span class="line">(1 +    (1 +    (1 +    (1 +    0  ))))  -- lstLen ex01</span><br></pre></td></tr></table></figure>
+<p>The relationship of the inductive type to the recursive function is obvious! You'll see this pattern over and over again, as inductive types are fundamental to many functional data structures, and many functional languages (Haskell included) don't even have constructs like for loops. In Haskell, when you have to loop, you have to use recursion. If you're familiar with functions like <code>map</code> and <code>fold</code> you might say "hey wait - I don't <em>have</em> to use recursion, I can use functions like <code>map</code> and <code>fold</code> " ... well that's true but map and fold are recursive functions, so you may not have to <em>write</em> recursive functions, but you will definitely <em>use</em> recursive functions ;)</p>
+<h3 id="double-every-list-item">Double Every List Item</h3>
+<p>Now rather than counting every list item, we're going to <em>modify</em> each item in a list of integers by doubling it. But Haskell is immutable, so we can't change existing values. Whenever you want to "change" the value of a variable you have to instead think of creating a new variable with the new value.</p>
+<figure class="highlight haskell"><figcaption><span>Double Every Item</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Double every item in the list -&#125;</span></span><br><span class="line"><span class="title">doubler</span> :: <span class="type">Lst</span> <span class="type">Int</span> -&gt; <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">doubler</span> <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">doubler</span> (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (x * <span class="number">2</span>) (doubler xs)</span><br></pre></td></tr></table></figure>
+<p>(<a target="_blank" rel="noopener" href="https://play.haskell.org/saved/Wtw54h4Y">snippet</a> in playground)</p>
+<p>The <code>doubler</code> function follows the same pattern as <code>lstLen</code>. We handle the base case of the inductive type <code>Lst</code> by pattern matching <code>NIL</code>. Doubling every value in the empty list results in the empty list, no surprise there. The inductive case matches against <code>Cons x xs</code>, with the head of the list bound to <code>x</code> and the rest of the list is <code>xs</code>. The result of this match is a <em>new</em> <code>Cons</code>, with the head of the list being doubled, and calling <code>doubler</code> recursively on <code>xs</code> to get the new rest of the list.</p>
+<p>Much like <code>lstLen</code>, the <code>doubler</code> function replaces each <code>Cons</code> as it walks its way down the list.</p>
+<figure class="highlight text"><figcaption><span>From List to Modified List</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(Cons 1       (Cons 2       (Cons 3       (Cons 4       NIL))))  -- ex01</span><br><span class="line">(1 +          (1 +          (1 +          (1 +          0  ))))  -- lstLen ex01</span><br><span class="line"></span><br><span class="line">(Cons (1 * 2) (Cons (2 * 2) (Cons (3 * 2) (Cons (4 * 2) NIL))))  -- doubler ex01</span><br></pre></td></tr></table></figure>
+<h3 id="generalizing-with-map-and-fold">Generalizing with Map and Fold</h3>
+<p>You may recognize the <code>doubler</code> as doing a <em>map</em> operation, and our <code>lstLen</code> is doing a <em>fold</em>. Let's start with a map operation.</p>
+<h4 id="map">Map</h4>
+<p>When we want to apply a function, for example one that double's an integer, to every item in a list (or other collection as we'll see), we can write the function directly as we did with <code>doubler</code>, or we can use a <em>higher order function</em> called map. A <strong>higher-order function</strong> is one that either takes a function as an argument, returns a function, or both. It's a function that operates on functions.</p>
+<p><code>doubler</code> is a function that doubles every element of a list. If we just look at the doubling part of <code>doubler</code>, we have</p>
+<figure class="highlight haskell"><figcaption><span>double an integer</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Doubles the input parameter -&#125;</span></span><br><span class="line"><span class="title">dub</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">dub</span> n = n * <span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>We can rewrite <code>doubler</code> using this function:</p>
+<figure class="highlight haskell"><figcaption><span>doubler using dub</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Double every item in the list using dub -&#125;</span></span><br><span class="line"><span class="title">doubler</span> :: <span class="type">Lst</span> <span class="type">Int</span> -&gt; <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">doubler</span> <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">doubler</span> (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (dub x) (doubler xs)</span><br></pre></td></tr></table></figure>
+<p>Now we can see how we might be able to generalize this function, if we pass the <code>dub</code> function in as a parameter. We'll change the name of the function as now it could do other things to every value in the list. Note how we specify the type of the modifying function; it's the same type signature of our <code>dub</code> function.</p>
+<figure class="highlight haskell"><figcaption><span>Generalized list modifier</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Apply a function to every element in the list to generate</span></span><br><span class="line"><span class="comment">    a new element -&#125;</span></span><br><span class="line"><span class="title">lstModder</span> :: (<span class="type">Int</span> -&gt; <span class="type">Int</span>) -&gt; <span class="type">Lst</span> <span class="type">Int</span> -&gt; <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">lstModder</span> _ <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">lstModder</span> modFn (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (modFn x) (lstModder modFn xs)</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Output list and doubled list -&#125;</span></span><br><span class="line"><span class="title">main</span> :: <span class="type">IO</span> ()</span><br><span class="line"><span class="title">main</span> = <span class="keyword">do</span></span><br><span class="line">  putStrLn $ <span class="string">&quot;ex1         : &quot;</span> ++ (show ex01) </span><br><span class="line">  putStrLn $ <span class="string">&quot;doubled ex1 : &quot;</span> ++ (show (lstModder dub ex01))</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/rIqKIt7i">Snippet</a></p>
+<p>The first parameter is a function from <code>Int</code> to <code>Int</code>. We pass our integer doubling function <code>dub</code> to the <code>lstModder</code> function to do the work of modifying each element. Note how in the base case, when the list is <code>NIL</code> (empty), we use an underscore in the place of the first parameter. This tells Haskell to ignore the first parameter. In an empty list, we won't be using the modifier function. We could still name it, but Haskell would then warn us we have an unused variable.</p>
+<p>The parentheses in the type signature are necessary because the arrow <code>-&gt;</code> which defines a function, binds to the right. That means without parentheses the order of precedence would look like the following, and the function would not type check. It would be expecting three parameters first and second parameters to be a <code>Int</code>s and the third an <code>Lst Int</code>.</p>
+<figure class="highlight haskell"><figcaption><span>wrong order of precedence</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| does not type check -&#125;</span></span><br><span class="line"><span class="title">lstModder</span> :: (<span class="type">Int</span> -&gt; (<span class="type">Int</span> -&gt; (<span class="type">Lst</span> <span class="type">Int</span> -&gt; <span class="type">Lst</span> <span class="type">Int</span>)))</span><br><span class="line"><span class="title">lstModder</span> _ <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">lstModder</span> modFn (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (modFn x) (lstModder modFn xs)</span><br></pre></td></tr></table></figure>
+<p>Now we have a general purpose modifier for lists of <em>integers</em>, but we could generalize further. What if we didn't specify <code>Int</code> as the input and output of our modifier function. And even better, what if the input and output of the modifier function didn't have to both be the same type?</p>
+<figure class="highlight haskell"><figcaption><span>general purpose lst modder</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| apply a modifier function to a list of any type -&#125;</span></span><br><span class="line"><span class="title">lstModder</span> :: (a -&gt; b) -&gt; <span class="type">Lst</span> a -&gt; <span class="type">Lst</span> b</span><br><span class="line"><span class="title">lstModder</span> _ <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">lstModder</span> modFn (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (modFn x) (lstModder modFn xs)</span><br></pre></td></tr></table></figure>
+<p>We've already seen a <em>type variable</em> used in the definition of <code>Lst</code> to enable the <code>Lst</code> inductive type to represent a list of any type. The same approach is used in the <code>lstModder</code> function, the lower case <code>a</code> and <code>b</code> can both represent any type, without restriction. The implication is that the modifier function can not only modify one of the elements of the list, it can return a completely different type! The modifier turns a single <code>a</code> into a <code>b</code>, and the <code>lstModder</code> turns a <em>list of</em> <code>a</code> into a <em>list of</em> <code>b</code>. It could be that <code>a</code> and <code>b</code> are the same type as they are in the <code>dub</code> function, but they can also be different.</p>
+<p>It happens now that our list modifier function is exactly a <strong>map</strong> function for our <code>Lst</code> data type.</p>
+<figure class="highlight haskell"><figcaption><span>list modder is map</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Apply a function to eeach element in a list </span></span><br><span class="line"><span class="comment">    to produce a new list -&#125;</span></span><br><span class="line"><span class="title">lstMap</span> :: (a -&gt; b) -&gt; <span class="type">Lst</span> a -&gt; <span class="type">Lst</span> b</span><br><span class="line"><span class="title">lstMap</span> _ <span class="type">NIL</span>         = <span class="type">NIL</span></span><br><span class="line"><span class="title">lstMap</span> f (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (f x) (lstMap f xs)</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/QyPA1efd">Snippet</a></p>
+<p>We can use our new <code>lstMap</code> with a different modifier function to create a sort of a histogram:</p>
+<figure class="highlight haskell"><figcaption><span>from a list of ints to a histogram</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Makes a string of repeated strings -&#125;</span></span><br><span class="line"><span class="title">makeStringOf</span> :: <span class="type">String</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">String</span></span><br><span class="line"><span class="title">makeStringOf</span> _ <span class="number">0</span> = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="title">makeStringOf</span> s n = s ++ (makeStringOf s (n - <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Makes a string of asterisks -&#125;</span></span><br><span class="line"><span class="title">makeStringOfStars</span> :: <span class="type">Int</span> -&gt; <span class="type">String</span></span><br><span class="line"><span class="title">makeStringOfStars</span> n = makeStringOf <span class="string">&quot;*&quot;</span> n</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Turn a list of integers to a list of strings of asterisks where</span></span><br><span class="line"><span class="comment">    each string of asterisks represents the integer from the </span></span><br><span class="line"><span class="comment">    original list -&#125;</span></span><br><span class="line"><span class="title">histogramOf</span> :: <span class="type">Lst</span> <span class="type">Int</span> -&gt; <span class="type">Lst</span> <span class="type">String</span></span><br><span class="line"><span class="title">histogramOf</span> nums = lstMap makeStringOfStars nums</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/q4ihdfWk">Snippet</a></p>
+<p>Let's introduce a couple of more concepts that you'd find in real Haskell code before moving on. Here's another way to produce our histogram.</p>
+<figure class="highlight haskell"><figcaption><span>another way to histogram</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">putStrLn</span> $ show $ lstMap (makeStringOf <span class="string">&quot;*&quot;</span>) ex01</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/iSchmZYf">Snippet</a></p>
+<p>There are a few different things going on here. First, the <code>putStrLn $ show $</code> (look at the <a target="_blank" rel="noopener" href="https://play.haskell.org/saved/iSchmZYf">snippet</a> for the full context) - this is just a way to print our result to the output, we'll look at the details later. More interestingly, we've gotten rid of <code>mkeStringOfStars</code>. The type of <code>makeStringOf</code> is <code>String -&gt; Int -&gt; String</code>. In Haskell, if we pass this function that expects 2 parameters just one, what would it return?</p>
+<figure class="highlight text"><figcaption><span>curried function</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">makeStringOf :: String -&gt; Int -&gt; String</span><br><span class="line">                 🡡         \__________/</span><br><span class="line">                 |               |</span><br><span class="line">                 |               |</span><br><span class="line">makeStringOf    &quot;*&quot;              |</span><br><span class="line">                                 |</span><br><span class="line">                                 🡣</span><br><span class="line">                          /-----------\</span><br><span class="line">                          Int -&gt; String</span><br></pre></td></tr></table></figure>
+<p>What we get back is another function, this time <code>Int -&gt; String</code>. The asterisk string we pass to <code>makeStringOf</code> is <em>captured</em> in this new function that is returned. The new function will turn any <code>Int</code> into a string of that many asterisks. We then pass this in our <code>lstMap</code> function as the modifier. This behavior is known as <em>partial application</em>, we're only partially applying the parameters the <code>makeStringOf</code> function is expecting. This is perfectly legal and canonical Haskell.</p>
+<h4 id="fold">Fold</h4>
+<p>While a map function is definitely a powerful tool, it is limited in that the structure being mapped over, a list in our case, is preserved in the output. Map doesn't allow us to change the output type. It will not only be a list, but be a list of the same size. What we need is a similar function that walks the data structure and allows more flexibility. Let's use this to refactor our <code>lstLen</code> function for finding the length of a list.</p>
+<figure class="highlight haskell"><figcaption><span>fold for our list type</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&#123;-| Fold for Lst -&#125;</span></span><br><span class="line"><span class="title">lstFold</span> :: (b -&gt; a -&gt; b) -&gt; b -&gt; <span class="type">Lst</span> a -&gt; b</span><br><span class="line"><span class="title">lstFold</span> _ acc <span class="type">NIL</span> = acc</span><br><span class="line"><span class="title">lstFold</span> f acc (<span class="type">Cons</span> x xs) = lstFold f (f acc x) xs</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Get the length of a list by folding over the list with</span></span><br><span class="line"><span class="comment">    an accumulator function -&#125;</span></span><br><span class="line"><span class="title">lstLen</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">lstLen</span> xs = lstFold (\acc _ -&gt; <span class="number">1</span> + acc) <span class="number">0</span> xs</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/lkigFcXR">Snippet</a></p>
+<p>The type of <code>lstFold</code> is interesting. The first parenthesized parameter has type <code>(b -&gt; a -&gt; b)</code>. We saw earlier that the parentheses indicate that the first parameter is a function, in this case a function that takes two parameters <code>a</code> and <code>b</code>, and returns a value of the same type <code>b</code> as the first parameter. The first parameter, <code>b</code>, is usually referred to as the <em>accumulator</em>. This is the new value that we're building with our fold. Each application of <code>lstFold</code> will get the accumulator and the next value in the list. It should use these two parameters to calculate and return a new value for the accumulator.</p>
+<p>The next parameter after the accumulator function is also of type <code>b</code>, and this should be the value of the accumulator <em>before we start processing the list</em>. When counting the elements in a list for example, we should start at zero as the accumulator. We need this because even at the first element, the accumulator function needs a value for the accumulator.</p>
+<p>The last parameter to <code>lstFold</code> is the list over which we are folding.</p>
+<p>The new <code>lstLen</code> function now uses <code>lstFold</code> and another new concept, an anonymous function, to calculate the length of the list. The anonymous function saves us from having to write a named function just to add one to a number. In Haskell an anonymous function begins with the backslash followed by the arguments of the function separated by spaces, and the body of the function follows the right arrow <code>-&gt;</code>.</p>
+<figure class="highlight haskell"><figcaption><span>anonymous number</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- instead of</span></span><br><span class="line"><span class="title">add1ToX</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">add1ToX</span> acc _ = acc + <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- we can use an anonymous function</span></span><br><span class="line">\acc _ -&gt; acc + <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>Note that in the case of counting the elements in the list, we don't actually care <em>what</em> the element is, so in our accumulator function we ignore the second parameter that <code>lstFold</code> is looking for, the element in the list. But if we wanted to say sum up the values in an integer list, we could do that with this call to <code>lstFold</code>. The accumulator is carrying the running sum through the list.</p>
+<figure class="highlight haskell"><figcaption><span>sum the values in an integer list</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">putStrLn</span> $ show $ lstFold (\acc x -&gt; acc + x) <span class="number">0</span> ex01</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/6AGvoDnV">Snippet</a></p>
+<h4 id="η-conversion">η-conversion</h4>
+<p>There's another interesting optimization we can use, called  η-conversion, (eta conversion). This one is optional, and some people really don't care to see it in code, but it is a fundamental concept with which it is good to be comfortable. As a matter of fact, with the Visual Studio Code plugin, you'll get linter hints where there's an opportunity to use  η-conversion.</p>
+<figure class="highlight haskell"><figcaption><span>beta reduction for lstLen</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">&#123;-| before η-conversion -&#125;</span></span><br><span class="line"><span class="title">lstLen1</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">lstLen1</span> xs = lstFold (\acc _ -&gt; <span class="number">1</span> + acc) <span class="number">0</span> xs</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| with  η-conversion -&#125;</span></span><br><span class="line"><span class="title">lstLen</span> :: <span class="type">Lst</span> a -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">lstLen</span> = lstFold (\acc _ -&gt; <span class="number">1</span> + acc) <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>Note that the type signature for <code>lstLen</code> hasn't changed, it's still looking for a <code>Lst a</code> and returning an <code>Int</code>. But in the definition, we've left off the parameter. We've also left the last parameter from body of the function, the call to <code>lstFold</code>. Look at this simple example:</p>
+<figure class="highlight haskell"><figcaption><span>η-conversion</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- these two definitions are the same (assume an abs function exists):</span></span><br><span class="line"></span><br><span class="line"><span class="title">myAbs1</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">myAbs1</span> x = abs x</span><br><span class="line"></span><br><span class="line"><span class="title">myAbs2</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">myAbs2</span> = abs</span><br></pre></td></tr></table></figure>
+<h4 id="partial-application-of-infix-operators">Partial Application of Infix Operators</h4>
+<p>Another common technique is using partial application of infix operators. Remembering that addition and multiplication are actually functions with an <em>infix</em> syntax, which means the arguments of the function are placed on either side of the function:</p>
+<figure class="highlight haskell"><figcaption><span>infix functions</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">add</span> :: <span class="type">Int</span> -&gt; <span class="type">Int</span></span><br><span class="line"><span class="title">add</span> a b = a + b</span><br><span class="line"></span><br><span class="line"><span class="comment">-- these are equiv</span></span><br><span class="line"><span class="comment">-- note that you can&#x27;t redefine ans over and over, this is just an example</span></span><br><span class="line"></span><br><span class="line"><span class="title">ans</span> :: <span class="type">Int</span></span><br><span class="line"><span class="title">ans</span> = <span class="number">2</span> + <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="title">ans</span> = (+) <span class="number">2</span> <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="title">ans</span> = add <span class="number">2</span> <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="title">ans</span> = <span class="number">2</span> `add` <span class="number">3</span></span><br></pre></td></tr></table></figure>
+<p>When we want to treat an infix operator, like addition, as a normal prefix function, we wrap it in parentheses. And when we want to treat a standard prefix function like <code>add</code> above as an <em>infix</em> function, we can wrap it in back ticks.</p>
+<p>Knowing this, we can leverage partial application:</p>
+<figure class="highlight haskell"><figcaption><span>partial application of infix operators</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Add 2 to every integer in a list -&#125;</span></span><br><span class="line"><span class="title">ans1</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">ans1</span> = lstMap (<span class="number">2</span> +) ex01</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| sum up every element in a list -&#125;</span></span><br><span class="line"><span class="title">ans2</span> :: <span class="type">Int</span></span><br><span class="line"><span class="title">ans2</span> = lstFold (+) <span class="number">0</span> ex01</span><br></pre></td></tr></table></figure>
+<h2 id="wrapping-up">Wrapping up</h2>
+<p>This is already a long post ... let's wrap it up by switching from the custom types we've been using for bools and lists to the standard ones from the Prelude, and using anonymous functions and η-conversion where we'd typically find them. Although there are standard functions for list length and sum, we'll still use our own.</p>
+<p>On difference to notice when looking at this converted code - since Haskell uses lists so extensively, there's some syntactic sugar for added convenience. We can use square brackets in the type signature <code>[Int]</code> rather than <code>List Int</code>, we can use empty brackets <code>[]</code> rather than <code>NIL</code>, and we can use an infix operator <code>:</code> rather than <code>Cons</code>:</p>
+<figure class="highlight haskell"><figcaption><span>list syntactic sugar</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">----- Lst ------------------------------------ </span></span><br><span class="line"><span class="title">emptyLst</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">emptyLst</span> = <span class="type">NIL</span></span><br><span class="line"></span><br><span class="line"><span class="title">ex01</span> :: <span class="type">Lst</span> <span class="type">Int</span></span><br><span class="line"><span class="title">ex01</span> = (<span class="type">Cons</span> <span class="number">1</span> (<span class="type">Cons</span> <span class="number">2</span> (<span class="type">Cons</span> <span class="number">3</span> (<span class="type">Cons</span> <span class="number">4</span> <span class="type">NIL</span>))))</span><br><span class="line"></span><br><span class="line"><span class="title">mapLst</span> :: (a -&gt; b) -&gt; <span class="type">Lst</span> a -&gt; <span class="type">Lst</span> b</span><br><span class="line"><span class="title">mapLst</span> _ <span class="type">NIL</span> = <span class="type">NIL</span></span><br><span class="line"><span class="title">mapLst</span> f (<span class="type">Cons</span> x xs) = <span class="type">Cons</span> (f x) (map f xs)</span><br><span class="line"></span><br><span class="line"><span class="comment">----- List -----------------------------------</span></span><br><span class="line"><span class="title">emptyList</span> :: [<span class="type">Int</span>]</span><br><span class="line"><span class="title">emptyList</span> = []</span><br><span class="line"></span><br><span class="line"><span class="title">ex01</span> = (<span class="number">1</span> :: (<span class="number">2</span> :: (<span class="number">3</span> :: (<span class="number">4</span> :: []))))</span><br><span class="line"><span class="comment">-- or --</span></span><br><span class="line"><span class="title">ex01</span> = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]</span><br><span class="line"></span><br><span class="line"><span class="title">mapList</span> :: (a -&gt; b) -&gt; [a] -&gt; [b]</span><br><span class="line"><span class="title">mapList</span> _ [] = []</span><br><span class="line"><span class="title">mapList</span> f (x:xs) = (f x) : (map f xs)</span><br></pre></td></tr></table></figure>
+<p>And finally, the final code listing, using the <code>List</code> type and other functions available in the Prelude.</p>
+<figure class="highlight haskell"><figcaption><span>Exercises with built in types and functions</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Prelude </span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;- Prelude has </span></span><br><span class="line"><span class="comment">     null :: [a] -&gt; Bool    that retunrs True for empty lists,</span></span><br><span class="line"><span class="comment">     length :: [a] -&gt; Int    to get the length of litss, and</span></span><br><span class="line"><span class="comment">     sum :: [Int] -&gt; Int to get the sum of elements in the list</span></span><br><span class="line"><span class="comment">     </span></span><br><span class="line"><span class="comment">  so these implementations could be simpler still -&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| An example list of integers 1 - 4 -&#125;</span></span><br><span class="line"><span class="title">ex01</span> :: [<span class="type">Int</span>]</span><br><span class="line"><span class="title">ex01</span> = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">&#123;-| Makes a string of repeated strings -&#125;</span></span><br><span class="line"><span class="title">makeStringOf</span> :: <span class="type">String</span> -&gt; <span class="type">Int</span> -&gt; <span class="type">String</span></span><br><span class="line"><span class="title">makeStringOf</span> _ <span class="number">0</span> = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="title">makeStringOf</span> s n = s ++ (makeStringOf s (n - <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line"><span class="title">main</span> :: <span class="type">IO</span> ()</span><br><span class="line"><span class="title">main</span> = <span class="keyword">do</span></span><br><span class="line">  putStrLn $ <span class="string">&quot;ex1         : &quot;</span> ++ (show ex01) </span><br><span class="line">  putStrLn $ <span class="string">&quot;ex1 length  : &quot;</span> ++ (show (foldl (\acc _ -&gt; acc + <span class="number">1</span>) <span class="number">0</span> ex01))</span><br><span class="line">  putStrLn $ <span class="string">&quot;doubled ex1 : &quot;</span> ++ (show (map (<span class="number">2</span> *) ex01))</span><br><span class="line">  putStrLn $ <span class="string">&quot;sum ex1     : &quot;</span> ++ (show (foldl (+) <span class="number">0</span> ex01))</span><br><span class="line">  putStrLn $ <span class="string">&quot;histogram   : &quot;</span> ++ (show (map (makeStringOf <span class="string">&quot;*&quot;</span>) ex01))</span><br><span class="line">  </span><br><span class="line">  <span class="comment">-- bonus - mapping using foldr for a right fold...</span></span><br><span class="line">  putStrLn $ <span class="string">&quot;doubled ex1 : &quot;</span> ++</span><br><span class="line">    (show (foldr (\x acc -&gt; (<span class="number">2</span> * x):acc) [] ex01))</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://play.haskell.org/saved/rGLvoUcQ">Snippet</a></p>
+<p>Even with as much as we've looked at, we're still exploring the very tippy tip of the iceberg of the Haskell language. We've only looked at lists, but I've hinted that functions like map and fold can work over other data structures as well, like trees for example. Exploring how a function like map or fold might work over different data structures will require exploring <em>type classes</em> - a topic we'll have to tackle in another (possibly series of) posts!</p>
+<p>But don't be discouraged - with the information we've covered we can create most data structures, and most any function to manipulate these data structures, only missing some conveniences and abstractions that would make our code more concise and reusable, but no more correct. You've got the basic building blocks right now!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://efvincent.github.io/2023/03/09/230217-Haskell-Basics-04/" data-id="clf2y0gxk000aiwp5dfrv8fgt" data-title="Haskell Basics - Lists &amp; Functions 03" class="article-share-link">Share</a>
+      
+        <a href="http://efvincent.github.io/2023/03/09/230217-Haskell-Basics-04/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2023/02/11/230210-Haskell-Basics-03/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Haskell Basics - Lists &amp; Functions 02</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+   
+  <div id="disqus_thread"></div>
+  <script>
+   
+  var disqus_config = function () {
+      this.page.url = 'http://efvincent.github.io/2023/03/09/230217-Haskell-Basics-04/index.html';
+      this.page.identifier = 'haskell-basics-lists-&amp;-funcs-03';
+      this.page.title = 'Haskell Basics - Lists &amp; Functions 03';
+  };
+   
+  (function() {
+  var d = document, s = d.createElement('script');
+  s.src = 'https://efvincent-blog-1.disqus.com/embed.js';
+  s.setAttribute('data-timestamp', +new Date());
+  (d.head || d.body).appendChild(s);
+  })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/haskell/">haskell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/misc/">misc</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/basics/" rel="tag">basics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/data-structures/" rel="tag">data-structures</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/functions/" rel="tag">functions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/haskell/" rel="tag">haskell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/induction/" rel="tag">induction</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/setup/" rel="tag">setup</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/basics/" style="font-size: 20px;">basics</a> <a href="/tags/data-structures/" style="font-size: 10px;">data-structures</a> <a href="/tags/functions/" style="font-size: 15px;">functions</a> <a href="/tags/haskell/" style="font-size: 20px;">haskell</a> <a href="/tags/induction/" style="font-size: 10px;">induction</a> <a href="/tags/setup/" style="font-size: 10px;">setup</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/03/09/230217-Haskell-Basics-04/">Haskell Basics - Lists &amp; Functions 03</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/11/230210-Haskell-Basics-03/">Haskell Basics - Lists &amp; Functions 02</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/07/230207-Haskell-Basics-02/">Haskell Basics - Lists 01</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/07/230207-GHCup/">Install Haskell with GHCup</a>
+          </li>
+        
+          <li>
+            <a href="/2023/02/06/230206-Haskell-Basics-01/">Haskell Basics - Functions 01</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Eric Vincent<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'efvincent-blog-1';
+  
+  var disqus_url = 'http://efvincent.github.io/2023/03/09/230217-Haskell-Basics-04/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.async = true;
+    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
