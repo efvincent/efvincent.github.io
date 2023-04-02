@@ -18,8 +18,21 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "f8e46567c6a5309e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Mockingbird.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -69,7 +82,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 279.5
+    "width": 279.5,
+    "collapsed": true
   },
   "right": {
     "id": "925beb7b1ea513f8",
@@ -85,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "_posts/230217-Haskell-Basics-04.md",
+                "file": "Mockingbird.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +116,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "_posts/230217-Haskell-Basics-04.md",
+                "file": "Mockingbird.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +139,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "_posts/230217-Haskell-Basics-04.md"
+                "file": "Mockingbird.md"
               }
             }
           }
@@ -146,10 +160,11 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9c38b177136b2213",
+  "active": "f8e46567c6a5309e",
   "lastOpenFiles": [
-    "_posts/230207-Haskell-Basics-02.md",
     "_posts/230217-Haskell-Basics-04.md",
+    "Mockingbird.md",
+    "_posts/230207-Haskell-Basics-02.md",
     "_drafts/230228 - Peano Numerals.md",
     "_posts/230206-Haskell-Basics-01.md",
     "_drafts/230309 - Haskell-Basics.md",
